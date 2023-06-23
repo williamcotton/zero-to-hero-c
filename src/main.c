@@ -1,4 +1,3 @@
-#include "hashset.h"
 #include "plot.h"
 #include "value.h"
 #include <math.h>
@@ -45,21 +44,11 @@ void nnGraph() {
 
   // Print the values and gradients of each node
 
-  // init and run build_topo
-  TopoList *topo = topolist_create(10);
-  int index = 0;
-  HashSet *visited = hashset_create();
-  topographicalSort(o, topo, &index, visited);
-
-  o->grad = 1.0;
-  for (int i = topo->size - 1; i >= 0; i--) {
-    backpropagate(topo->values[i]);
-  }
+  backpropagateGraph(o);
 
   printValue(o);
 
   freeValue(o);
-  topolist_free(topo);
 }
 
 int main() {

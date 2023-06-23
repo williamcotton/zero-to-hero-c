@@ -19,5 +19,6 @@ Value *initValue(float data, char *label);
 void printValue(Value *v);
 void freeValue(Value *v);
 void backpropagate(Value *v);
+void backpropagateGraph(Value *output);
 
 #endif

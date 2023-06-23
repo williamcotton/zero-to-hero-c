@@ -1,5 +1,6 @@
 #include "value.h"
 #include "hashset.h"
+#include "topographical_sort.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +81,19 @@ void backpropagate(Value *v) {
   } else if (strcmp(v->operation, "tanh") == 0) {
     tanhv_backward(v);
   }
+}
+
+void backpropagateGraph(Value *output) {
+  TopoList *topo = topolist_create(10);
+  int index = 0;
+  HashSet *visited = hashset_create();
+  topographicalSort(output, topo, &index, visited);
+
+  output->grad = 1.0;
+  for (int i = topo->size - 1; i >= 0; i--) {
+    backpropagate(topo->values[i]);
+  }
+  topolist_free(topo);
 }
 
 void printValue(Value *v) {
