@@ -3,8 +3,10 @@
 
 #define MAX_CHILDREN 1024 * 10
 
+#define UNUSED __attribute__((unused))
+
 typedef struct Value {
-  float data;
+  double data;
   char *label;
   char *operation;
   struct Value **children;
@@ -14,6 +16,7 @@ typedef struct Value {
 
 Value *add(Value *v1, Value *v2);
 Value *multiply(Value *v1, Value *v2);
+Value *expv(Value *v);
 Value *tanhv(Value *v);
 Value *initValue(float data, char *label);
 void printValue(Value *v);

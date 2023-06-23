@@ -1,3 +1,4 @@
+#include "neuralnet.h"
 #include "plot.h"
 #include "value.h"
 #include <math.h>
@@ -51,8 +52,69 @@ void nnGraph() {
   freeValue(o);
 }
 
+void mlp() {
+  // Define input and output data
+  float xs[4][3] = {
+      {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
+  float ys[4] = {1.0, -1.0, -1.0, 1.0};
+
+  // Create MLP with 3 input neurons, 2 hidden layers with 4 neurons each, and 1
+  // output neuron
+  int nouts[3] = {4, 4, 1};
+  MLP *mlp = mlp_create(3, nouts, 3);
+
+  // Train MLP for 20 epochs
+  for (int k = 0; k < 20; k++) {
+    // Forward pass
+    float loss = 0.0;
+    for (int i = 0; i < 4; i++) {
+      Value *x[3];
+      for (int j = 0; j < 3; j++) {
+        x[j] = initValue(xs[i][j], NULL);
+      }
+      Value *yout = mlp_call(mlp, x[0]);
+      loss += pow(yout->data - ys[i], 2);
+      // freeValue(yout);
+      for (int j = 0; j < 3; j++) {
+        // freeValue(x[j]);
+      }
+    }
+
+    // Backward pass
+    for (int i = 0; i < mlp->n; i++) {
+      Layer *layer = mlp->layers[i];
+      for (int j = 0; j < layer->nout; j++) {
+        Neuron *neuron = layer->neurons[j];
+        for (int k = 0; k < neuron->nin; k++) {
+          neuron->w[k]->grad = 0.0;
+        }
+        neuron->b->grad = 0.0;
+      }
+    }
+    backpropagateGraph(initValue(loss, NULL));
+
+    // Update weights and biases
+    for (int i = 0; i < mlp->n; i++) {
+      Layer *layer = mlp->layers[i];
+      for (int j = 0; j < layer->nout; j++) {
+        Neuron *neuron = layer->neurons[j];
+        for (int k = 0; k < neuron->nin; k++) {
+          neuron->w[k]->data += -0.1 * neuron->w[k]->grad;
+        }
+        neuron->b->data += -0.1 * neuron->b->grad;
+      }
+    }
+
+    printf("%d %f\n", k, loss);
+  }
+
+  // Free MLP
+  // mlp_free(mlp);
+}
+
 int main() {
   // manualBackprop();
   // plot(tanhf);
-  nnGraph();
+  // nnGraph();
+  mlp();
 }

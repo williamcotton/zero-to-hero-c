@@ -32,6 +32,34 @@ Value *multiply(Value *v1, Value *v2) {
   return result;
 }
 
+Value *power(Value *v1, Value *v2) {
+  Value *result = malloc(sizeof(Value));
+  result->data = pow(v1->data, v2->data);
+  result->operation = "^";
+  result->num_children = 2;
+  result->children = malloc(sizeof(Value *) * result->num_children);
+  result->children[0] = v1;
+  result->children[1] = v2;
+  result->grad = 0.0;
+  return result;
+}
+
+Value *division(UNUSED Value *v1, Value *v2) {
+  Value *result = power(v2, initValue(-1.0, "-1"));
+  return result;
+}
+
+Value *expv(Value *v) {
+  Value *result = malloc(sizeof(Value));
+  result->data = exp(v->data);
+  result->operation = "exp";
+  result->num_children = 1;
+  result->children = malloc(sizeof(Value *));
+  result->children[0] = v;
+  result->grad = 0.0;
+  return result;
+}
+
 Value *initValue(float data, char *label) {
   Value *result = malloc(sizeof(Value));
   result->data = data;
@@ -45,7 +73,6 @@ Value *initValue(float data, char *label) {
 
 Value *tanhv(Value *v) {
   Value *result = malloc(sizeof(Value));
-  printf("tanh_float(v->data): %f\n", tanh_float(v->data));
   result->data = tanh_float(v->data);
   result->operation = "tanh";
   result->num_children = 1;
@@ -65,9 +92,20 @@ void multiply_backward(Value *v) {
   v->children[1]->grad += v->children[0]->data * v->grad;
 }
 
+void expv_backward(Value *v) { v->children[0]->grad += v->data * v->grad; }
+
 void tanhv_backward(Value *v) {
   v->children[0]->grad +=
       (1 - pow(tanh_float(v->children[0]->data), 2)) * v->grad;
+}
+
+void power_backward(Value *v) {
+  v->children[0]->grad += v->children[1]->data *
+                          pow(v->children[0]->data, v->children[1]->data - 1) *
+                          v->grad;
+  v->children[1]->grad += log(v->children[0]->data) *
+                          pow(v->children[0]->data, v->children[1]->data) *
+                          v->grad;
 }
 
 void backpropagate(Value *v) {
@@ -80,6 +118,10 @@ void backpropagate(Value *v) {
     multiply_backward(v);
   } else if (strcmp(v->operation, "tanh") == 0) {
     tanhv_backward(v);
+  } else if (strcmp(v->operation, "exp") == 0) {
+    expv_backward(v);
+  } else if (strcmp(v->operation, "^") == 0) {
+    power_backward(v);
   }
 }
 

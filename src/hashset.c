@@ -6,6 +6,9 @@
 
 int hash_value(Value *value) {
   int hash = 0;
+  if (value->label == NULL) {
+    return hash;
+  }
   for (size_t i = 0; i < strlen(value->label); i++) {
     hash = (hash * 31 + value->label[i]) % HASHSET_SIZE;
   }
