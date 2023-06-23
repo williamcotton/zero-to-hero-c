@@ -9,6 +9,8 @@ typedef struct Value {
   char *operation;
   struct Value *children[MAX_CHILDREN];
   float grad;
+  // a function called backward that takes in 3 values by reference
+  void (*backward)(struct Value *self, struct Value *other, struct Value *out);
 } Value;
 
 Value add(Value v1, Value v2);
