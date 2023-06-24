@@ -73,6 +73,7 @@ void mlp() {
         x[j] = initValue(xs[i][j], NULL);
       }
       Value *yout = mlp_call(mlp, x[0]);
+      // this is not a Value call!
       loss += pow(yout->data - ys[i], 2);
       // freeValue(yout);
       for (int j = 0; j < 3; j++) {
