@@ -3,18 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// typedef struct ValueList {
-//   Value *value;
-//   struct ValueList *next;
-// } ValueList;
-
-// typedef struct Neuron {
-//   Value **w;
-//   Value *b;
-//   int nin;
-//   ValueList *out;
-// } Neuron;
-
 Neuron *neuron_create(int nin) {
   Neuron *neuron = malloc(sizeof(Neuron));
   neuron->w = malloc(sizeof(Value *) * nin);

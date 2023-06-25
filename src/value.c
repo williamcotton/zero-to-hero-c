@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void value_add_backward(Value *v) {
+static void value_add_backward(Value *v) {
   v->children[0]->grad += 1.0 * v->grad;
   v->children[1]->grad += 1.0 * v->grad;
 }
@@ -25,7 +25,7 @@ Value *value_add(Value *v1, Value *v2) {
   return result;
 }
 
-void value_multiply_backward(Value *v) {
+static void value_multiply_backward(Value *v) {
   v->children[0]->grad += v->children[1]->data * v->grad;
   v->children[1]->grad += v->children[0]->data * v->grad;
 }
@@ -44,7 +44,7 @@ Value *value_multiply(Value *v1, Value *v2) {
   return result;
 }
 
-void value_power_backward(Value *v) {
+static void value_power_backward(Value *v) {
   v->children[0]->grad +=
       v->v2 * pow(v->children[0]->data, v->v2 - 1) * v->grad;
 }
@@ -77,9 +77,11 @@ Value *value_subtract(Value *v1, Value *v2) {
   return value_add(v1, value_negate(v2));
 }
 
-double tanh_double(double x) { return (exp(2 * x) - 1) / (exp(2 * x) + 1); }
+static double tanh_double(double x) {
+  return (exp(2 * x) - 1) / (exp(2 * x) + 1);
+}
 
-void value_tanhv_backward(Value *v) {
+static void value_tanhv_backward(Value *v) {
   v->children[0]->grad +=
       (1 - pow(tanh_double(v->children[0]->data), 2)) * v->grad;
 }
@@ -97,7 +99,7 @@ Value *value_tanhv(Value *v) {
   return result;
 }
 
-void value_expv_backward(Value *v) {
+static void value_expv_backward(Value *v) {
   v->children[0]->grad += v->data * v->grad;
 }
 
@@ -184,12 +186,6 @@ void value_print(Value *v, int depth) {
     printf("\n");
     value_print(v->children[i], depth + 1);
   }
-}
-
-Value *value_copy(Value *dst, Value *src) {
-  dst->data = src->data;
-  dst->grad = src->grad;
-  return dst;
 }
 
 void value_free(Value *v) {

@@ -17,18 +17,17 @@ struct Value {
   double v2;
 };
 
+Value *value_create(double data, char *label);
 Value *value_add(Value *v1, Value *v2);
 Value *value_subtract(Value *v1, Value *v2);
 Value *value_multiply(Value *v1, Value *v2);
 Value *value_divide(Value *v1, Value *v2);
 Value *value_expv(Value *v);
 Value *value_tanhv(Value *v);
-Value *value_create(double data, char *label);
 Value *value_power(Value *v1, double v2);
 void value_print(Value *v, int depth);
-Value *value_copy(Value *dst, Value *src);
-void value_free(Value *v);
 void value_backpropagate_graph(Value *output);
 void value_free_graph(Value *output);
+void value_free(Value *v);
 
 #endif

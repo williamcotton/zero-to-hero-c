@@ -18,8 +18,8 @@ typedef struct Neuron {
 Neuron *neuron_create(int nin);
 Value *neuron_call(Neuron *neuron, Value **x);
 Value **neuron_parameters(Neuron *neuron);
-void neuron_free(Neuron *neuron);
 void neuron_print(Neuron *neuron);
+void neuron_free(Neuron *neuron);
 
 typedef struct Layer {
   Neuron **neurons;
@@ -45,7 +45,7 @@ ValueList *value_list_append(ValueList *list, Value *value);
 void mlp_update_graph(MLP *mlp);
 Value **mlp_parameters(MLP *mlp);
 int mlp_nparams(MLP *mlp);
-void mlp_free(MLP *mlp);
 void mlp_print(MLP *mlp);
+void mlp_free(MLP *mlp);
 
 #endif

@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUM_POINTS 40
+float quadratic(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
 
-float f(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
+#define NUM_POINTS 40
 
 void print_banner(const char *title) {
   int len = strlen(title);
@@ -23,7 +23,7 @@ void print_banner(const char *title) {
   printf("\033[0m\n\n");
 }
 
-void plot(float (*f)(float)) {
+void plot(float (*f)(float), char *filename) {
   print_banner("plot");
 
   double xs[NUM_POINTS], ys[NUM_POINTS];
@@ -35,7 +35,7 @@ void plot(float (*f)(float)) {
                           .step = 0.2,
                       });
 
-  plot_data(xs, ys, NUM_POINTS, "Function Plot", "images/plot.png");
+  plot_data(xs, ys, NUM_POINTS, "Function Plot", filename);
 }
 
 void nnGraph() {
@@ -163,7 +163,6 @@ void trainingLoop() {
     // forward pass
     Value *mse_loss = value_create(0.0, NULL);
     ValueList *outputs_list = NULL;
-    // ValueList *intermediates_list = NULL;
 
     for (int i = 0; i < outputCount; i++) {
       ValueList *ypreds = mlp_call(mlp, xs[i]);
@@ -207,7 +206,8 @@ void trainingLoop() {
 }
 
 int main() {
-  plot(tanhf);
+  plot(tanhf, "images/tanhf.png");
+  plot(quadratic, "images/quadratic.png");
   nnGraph();
   nn1();
   layer1();

@@ -12,7 +12,7 @@ typedef struct TopoList {
 
 TopoList *topolist_create(int capacity);
 void topolist_add(TopoList *list, Value *value);
-void topolist_free(TopoList *list);
 void topolist_sort(Value *v, TopoList *topo, int *index, HashSet *visited);
+void topolist_free(TopoList *list);
 
 #endif
