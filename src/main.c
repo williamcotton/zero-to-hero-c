@@ -89,27 +89,14 @@ void mlp1() {
   int nouts[3] = {4, 4, finalCount};
   MLP *mlp = mlp_create(3, nouts, 3);
 
-  mlp_print(mlp);
+  // mlp_print(mlp);
 
   Value **out = mlp_call(mlp, x);
   for (int i = 0; i < finalCount; i++) {
-    printf("Output: %f\n", out[i]->data);
-    value_print(out[i]);
+    printf("Output: %.15lf\n", out[i]->data);
+    // value_print(out[i]);
   }
 }
-
-/*
-
-xs = [
-  [2.0, 3.0, -1.0],
-  [3.0, -1.0, 0.5],
-  [0.5, 1.0, 1.0],
-  [1.0, 1.0, -1.0],
-]
-ys = [1.0, -1.0, -1.0, 1.0] # desired targets
-
-convert to c in the function below
-*/
 
 void trainingLoop() {
   int sampleCount = 4;
@@ -137,41 +124,33 @@ void trainingLoop() {
   ys[2] = value_create(-1.0, NULL);
   ys[3] = value_create(1.0, NULL);
 
-  int training_epochs = 20;
-
   int nouts[3] = {4, 4, 1};
   MLP *mlp = mlp_create(3, nouts, 3);
 
-  for (int i = 0; i < training_epochs; i++) {
+  int epochs = 20;
+  double learningRate = 0.01;
+
+  for (int i = 0; i < epochs; i++) {
     // forward pass
-    printf("Epoch %d\n", i);
-    Value *loss = value_create(0.0, NULL);
-    for (int j = 0; j < sampleCount; j++) {
-      Value **out = mlp_call(mlp, xs[j]);
-      // printf("Output: %p\n", out);
-      Value *difference = value_subtract(out[0], ys[j]);
-      Value *squared_difference = value_power(difference, 2.0);
-      loss = value_add(loss, squared_difference);
+    Value *lossSum = value_create(0.0, NULL);
+    for (int i = 0; i < sampleCount; i++) {
+      Value *ypred = mlp_call(mlp, xs[i])[0];
+      Value *loss = value_power(value_subtract(ypred, ys[i]), 2);
+      lossSum = value_add(lossSum, loss);
+      printf("ypred[%d]: %.15lf\n", i, ypred->data);
     }
-    printf("%d %.15lf\n", i, loss->data);
-    Value *mse_loss = value_divide(loss, value_create(sampleCount, NULL));
 
-    // backwd pass
-    value_zero_grad_graph(mse_loss);
-    // value_print(mse_loss);
+    // backward pass
+    value_zero_grad_graph(lossSum);
+    value_backpropagate_graph(lossSum);
 
-    value_backpropagate_graph(mse_loss);
-    // value_print(mse_loss);
+    // update parameters
+    Value **allValues = mlp_parameters(mlp);
+    for (int i = 0; i < mlp_nparams(mlp); i++) {
+      allValues[i]->data += -learningRate * allValues[i]->grad;
+    }
 
-    // mlp_print(mlp);
-
-    // update
-    // value_update_graph(mse_loss, 0.1);
-    mlp_update_graph(mlp);
-    // value_print(mse_loss);
-
-    printf("%d %.15lf\n", i, mse_loss->data);
-    value_free_graph(mse_loss);
+    printf("%d %.15lf\n", i, lossSum->data);
   }
   mlp_free(mlp);
   free(xs);

@@ -34,6 +34,15 @@ void neuron_free(Neuron *neuron) {
   free(neuron);
 }
 
+Value **neuron_parameters(Neuron *neuron) {
+  Value **params = malloc(sizeof(Value *) * (neuron->nin + 1));
+  for (int i = 0; i < neuron->nin; i++) {
+    params[i] = neuron->w[i];
+  }
+  params[neuron->nin] = neuron->b;
+  return params;
+}
+
 void neuron_print(Neuron *neuron) {
   printf("Neuron:\n");
   printf("  w: ");
@@ -60,6 +69,23 @@ Value **layer_call(Layer *layer, Value **x, Value **outs) {
     outs[i] = neuron_call(layer->neurons[i], x);
   }
   return outs;
+}
+
+int layer_nparams(Layer *layer) {
+  return layer->nin * layer->nout + layer->nout;
+}
+
+Value **layer_parameters(Layer *layer) {
+  Value **params = malloc(sizeof(Value *) * layer_nparams(layer));
+  int idx = 0;
+  for (int i = 0; i < layer->nout; i++) {
+    Value **neuron_params = neuron_parameters(layer->neurons[i]);
+    for (int j = 0; j < layer->nin + 1; j++) {
+      params[idx++] = neuron_params[j];
+    }
+    free(neuron_params);
+  }
+  return params;
 }
 
 void layer_free(Layer *layer) {
@@ -113,6 +139,29 @@ void mlp_update_graph(MLP *mlp) {
           learning_rate * mlp->layers[i]->neurons[j]->b->grad;
     }
   }
+}
+
+int mlp_nparams(MLP *mlp) {
+  int total = 0;
+  for (int i = 0; i < mlp->n; i++) {
+    int layerCount = layer_nparams(mlp->layers[i]);
+    total += layerCount;
+  }
+  return total;
+}
+
+Value **mlp_parameters(MLP *mlp) {
+  Value **params = malloc(sizeof(Value *) * mlp_nparams(mlp));
+  int idx = 0;
+  for (int i = 0; i < mlp->n; i++) {
+    Value **layer_params = layer_parameters(mlp->layers[i]);
+    int layerCount = layer_nparams(mlp->layers[i]);
+    for (int j = 0; j < layerCount; j++) {
+      params[idx++] = layer_params[j];
+    }
+    free(layer_params);
+  }
+  return params;
 }
 
 void mlp_free(MLP *mlp) {
