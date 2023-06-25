@@ -1,4 +1,4 @@
-#include "neuralnet.h"
+#include "mlp.h"
 #include "plot.h"
 #include "value.h"
 #include <math.h>
@@ -25,6 +25,8 @@ void print_banner(const char *title) {
 
 void plot(float (*f)(float), char *filename) {
   print_banner("plot");
+
+  printf("Plotting function: %s\n", filename);
 
   double xs[NUM_POINTS], ys[NUM_POINTS];
 
@@ -98,6 +100,8 @@ void layer1() {
     printf("Output: %f\n", result[i]->data);
     value_print(result[i], 0);
   }
+  free(result);
+  layer_free(layer);
 }
 
 void mlp1() {

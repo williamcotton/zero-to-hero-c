@@ -38,6 +38,8 @@ lint:
 analyze:
 	$(CC) --analyze $(SRCS) $(CFLAGS) -Xanalyzer -analyzer-output=text -Xanalyzer -analyzer-checker=core,deadcode,nullability,optin,osx,security,unix,valist -Xanalyzer -analyzer-disable-checker -Xanalyzer security.insecureAPI.DeprecatedOrUnsafeBufferHandling
 
+trace:
+	codesign -s - -v -f --entitlements debug.plist $(OBJDIR)/$(APP)
 
 run: $(OBJDIR)/$(APP)
 	export DISPLAY=:0.0 && ./$(OBJDIR)/$(APP)

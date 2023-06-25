@@ -188,6 +188,33 @@ void value_print(Value *v, int depth) {
   }
 }
 
+void value_list_free(ValueList *list) {
+  ValueList *next;
+  while (list) {
+    next = list->next;
+    free(list->value);
+    free(list);
+    list = next;
+  }
+}
+
+ValueList *value_list_append(ValueList *list, Value *value) {
+  ValueList *new_node = malloc(sizeof(ValueList));
+  new_node->value = value;
+  new_node->next = NULL;
+
+  if (list == NULL) {
+    return new_node;
+  } else {
+    ValueList *current = list;
+    while (current->next != NULL) {
+      current = current->next;
+    }
+    current->next = new_node;
+    return list;
+  }
+}
+
 void value_free(Value *v) {
   for (int i = 0; i < v->num_children; i++) {
     value_free(v->children[i]);

@@ -6,6 +6,12 @@
 #define UNUSED __attribute__((unused))
 
 typedef struct Value Value;
+
+typedef struct ValueList {
+  Value *value;
+  struct ValueList *next;
+} ValueList;
+
 struct Value {
   double data;
   char *label;
@@ -29,5 +35,7 @@ void value_print(Value *v, int depth);
 void value_backpropagate_graph(Value *output);
 void value_free_graph(Value *output);
 void value_free(Value *v);
+void value_list_free(ValueList *list);
+ValueList *value_list_append(ValueList *list, Value *value);
 
 #endif
