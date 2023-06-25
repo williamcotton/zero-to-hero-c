@@ -3,6 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// typedef struct ValueList {
+//   Value *value;
+//   struct ValueList *next;
+// } ValueList;
+
+// typedef struct Neuron {
+//   Value **w;
+//   Value *b;
+//   int nin;
+//   ValueList *out;
+// } Neuron;
+
 Neuron *neuron_create(int nin) {
   Neuron *neuron = malloc(sizeof(Neuron));
   neuron->w = malloc(sizeof(Value *) * nin);
@@ -13,13 +25,20 @@ Neuron *neuron_create(int nin) {
   neuron->b = value_create(
       (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   neuron->nin = nin;
+  neuron->out = NULL;
   return neuron;
 }
 
 Value *neuron_call(Neuron *neuron, Value **x) {
   Value *act = neuron->b;
   for (int i = 0; i < neuron->nin; i++) {
-    act = value_add(act, value_multiply(neuron->w[i], x[i]));
+    Value *mul = value_multiply(neuron->w[i], x[i]);
+    Value *add = value_add(act, mul);
+
+    neuron->out = value_list_append(neuron->out, mul);
+    neuron->out = value_list_append(neuron->out, add);
+
+    act = add;
   }
   Value *out = value_tanhv(act);
   return out;
@@ -31,11 +50,12 @@ void neuron_free(Neuron *neuron) {
   }
   free(neuron->w);
   value_free(neuron->b);
+  value_list_free(neuron->out);
   free(neuron);
 }
 
 Value **neuron_parameters(Neuron *neuron) {
-  Value **params = malloc(sizeof(Value *) * (neuron->nin + 1));
+  Value **params = calloc(neuron->nin + 1, sizeof(Value *));
   for (int i = 0; i < neuron->nin; i++) {
     params[i] = neuron->w[i];
   }
@@ -76,7 +96,7 @@ int layer_nparams(Layer *layer) {
 }
 
 Value **layer_parameters(Layer *layer) {
-  Value **params = malloc(sizeof(Value *) * layer_nparams(layer));
+  Value **params = calloc(layer_nparams(layer), sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < layer->nout; i++) {
     Value **neuron_params = neuron_parameters(layer->neurons[i]);
@@ -107,7 +127,6 @@ MLP *mlp_create(int nin, int *nouts, int n) {
 }
 
 void mlp_print(MLP *mlp) {
-  printf("\n=-=-=-=-=\n   MLP\n=-=-=-=-=\n");
   for (int i = 0; i < mlp->n; i++) {
     printf("\nLayer %d: nin=%d nout=%d\n=============================\n", i,
            mlp->layers[i]->nin, mlp->layers[i]->nout);
@@ -118,13 +137,58 @@ void mlp_print(MLP *mlp) {
   }
 }
 
-Value **mlp_call(MLP *mlp, Value **x) {
-  Value **xs = x;
+void value_list_free(ValueList *list) {
+  ValueList *next;
+  while (list) {
+    next = list->next;
+    free(list->value);
+    free(list);
+    list = next;
+  }
+}
+
+ValueList *value_list_append(ValueList *list, Value *value) {
+  ValueList *new_node = malloc(sizeof(ValueList));
+  new_node->value = value;
+  new_node->next = NULL;
+
+  if (list == NULL) {
+    return new_node;
+  } else {
+    ValueList *current = list;
+    while (current->next != NULL) {
+      current = current->next;
+    }
+    current->next = new_node;
+    return list;
+  }
+}
+
+ValueList *mlp_call(MLP *mlp, Value **x) {
+  if (mlp->n == 0) {
+    printf("Error: MLP has no layers\n");
+    return NULL;
+  }
+  if (x == NULL) {
+    printf("Error: Input is NULL\n");
+    return NULL;
+  }
+  if (x[0] == NULL) {
+    printf("Error: Input is NULL\n");
+    return NULL;
+  }
+  ValueList *first = NULL, *current = NULL;
   for (int i = 0; i < mlp->n; i++) {
     Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
-    xs = layer_call(mlp->layers[i], xs, outs);
+    x = layer_call(mlp->layers[i], x, outs);
+    for (int j = 0; j < mlp->layers[i]->nout; j++) {
+      current = value_list_append(current, outs[j]);
+      if (first == NULL) {
+        first = current;
+      }
+    }
   }
-  return xs;
+  return first;
 }
 
 void mlp_update_graph(MLP *mlp) {
@@ -151,7 +215,11 @@ int mlp_nparams(MLP *mlp) {
 }
 
 Value **mlp_parameters(MLP *mlp) {
-  Value **params = malloc(sizeof(Value *) * mlp_nparams(mlp));
+  int paramCount = mlp_nparams(mlp);
+  if (paramCount == 0) {
+    return NULL;
+  }
+  Value **params = calloc(paramCount, sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < mlp->n; i++) {
     Value **layer_params = layer_parameters(mlp->layers[i]);

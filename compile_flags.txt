@@ -1,0 +1,8 @@
+-Wall
+-Wextra
+-pedantic
+-std=gnu2x
+-fno-common
+-Wformat
+-Wshadow
+-Wmisleading-indentation

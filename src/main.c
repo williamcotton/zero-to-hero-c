@@ -4,12 +4,28 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define NUM_POINTS 40
 
 float f(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
 
+void print_banner(const char *title) {
+  int len = strlen(title);
+  int total_len = len + 6; // 3 characters padding on each side
+  printf("\n\033[34m");
+  for (int i = 0; i < total_len; i++)
+    printf(i % 2 == 0 ? "-" : "=");
+  printf("\n");
+  printf("   %s   \n", title);
+  for (int i = 0; i < total_len; i++)
+    printf(i % 2 == 0 ? "-" : "=");
+  printf("\033[0m\n\n");
+}
+
 void plot(float (*f)(float)) {
+  print_banner("plot");
+
   double xs[NUM_POINTS], ys[NUM_POINTS];
 
   plot_gen_ys_f_of_xs(ys, f, xs, NUM_POINTS,
@@ -23,6 +39,8 @@ void plot(float (*f)(float)) {
 }
 
 void nnGraph() {
+  print_banner("nnGraph");
+
   // inputs x1,x2
   Value *x1 = value_create(2.0, "x1");
   Value *x2 = value_create(0.0, "x2");
@@ -47,12 +65,14 @@ void nnGraph() {
 
   value_backpropagate_graph(o);
 
-  value_print(o);
+  value_print(o, 0);
 
   value_free(o);
 }
 
 void nn1() {
+  print_banner("nn1");
+
   Value *x[2];
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
@@ -60,11 +80,13 @@ void nn1() {
   Neuron *neuron = neuron_create(2);
   neuron_print(neuron);
   Value *result = neuron_call(neuron, x);
-  value_print(result);
+  value_print(result, 0);
   printf("Output: %f\n", result->data);
 }
 
 void layer1() {
+  print_banner("layer1");
+
   Value *x[2];
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
@@ -74,11 +96,13 @@ void layer1() {
   Value **result = layer_call(layer, x, outs);
   for (int i = 0; i < 3; i++) {
     printf("Output: %f\n", result[i]->data);
-    value_print(result[i]);
+    value_print(result[i], 0);
   }
 }
 
 void mlp1() {
+  print_banner("mlp1");
+
   Value *x[3];
   x[0] = value_create(2.0, NULL);
   x[1] = value_create(3.0, NULL);
@@ -89,18 +113,23 @@ void mlp1() {
   int nouts[3] = {4, 4, finalCount};
   MLP *mlp = mlp_create(3, nouts, 3);
 
-  // mlp_print(mlp);
+  mlp_print(mlp);
 
-  Value **out = mlp_call(mlp, x);
-  for (int i = 0; i < finalCount; i++) {
-    printf("Output: %.15lf\n", out[i]->data);
-    // value_print(out[i]);
+  ValueList *ypreds = mlp_call(mlp, x);
+  ValueList *current = ypreds;
+  while (current != NULL) {
+    printf("Output: %.15lf\n", current->value->data);
+    current = current->next;
   }
+  value_list_free(ypreds);
+  mlp_free(mlp);
 }
 
 void trainingLoop() {
-  int sampleCount = 4;
-  Value ***xs = malloc(sizeof(Value **) * sampleCount);
+  print_banner("trainingLoop");
+
+  int outputCount = 4;
+  Value ***xs = malloc(sizeof(Value **) * outputCount);
   xs[0] = malloc(sizeof(Value *) * 3);
   xs[0][0] = value_create(2.0, NULL);
   xs[0][1] = value_create(3.0, NULL);
@@ -127,30 +156,50 @@ void trainingLoop() {
   int nouts[3] = {4, 4, 1};
   MLP *mlp = mlp_create(3, nouts, 3);
 
-  int epochs = 20;
-  double learningRate = 0.01;
+  int epochs = 30;
+  double learningRate = 0.05;
 
-  for (int i = 0; i < epochs; i++) {
+  for (int epoch = 0; epoch < epochs; epoch++) {
     // forward pass
-    Value *lossSum = value_create(0.0, NULL);
-    for (int i = 0; i < sampleCount; i++) {
-      Value *ypred = mlp_call(mlp, xs[i])[0];
-      Value *loss = value_power(value_subtract(ypred, ys[i]), 2);
-      lossSum = value_add(lossSum, loss);
-      printf("ypred[%d]: %.15lf\n", i, ypred->data);
+    Value *mse_loss = value_create(0.0, NULL);
+    ValueList *outputs_list = NULL;
+    // ValueList *intermediates_list = NULL;
+
+    for (int i = 0; i < outputCount; i++) {
+      ValueList *ypreds = mlp_call(mlp, xs[i]);
+      outputs_list = ypreds;
+
+      Value *ypred =
+          ypreds->value; // assuming mlp_call returns list with single `Value`
+      Value *diff = value_subtract(ypred, ys[i]);
+      Value *loss = value_power(diff, 2);
+      mse_loss = value_add(mse_loss, loss);
+
+      outputs_list = value_list_append(outputs_list, diff);
+      outputs_list = value_list_append(outputs_list, loss);
+      outputs_list = value_list_append(outputs_list, mse_loss);
+
+      if (epoch == epochs - 1) {
+        printf("ypred[%d]: %.15lf\n", i, ypred->data);
+      }
     }
 
     // backward pass
-    value_zero_grad_graph(lossSum);
-    value_backpropagate_graph(lossSum);
+    Value **params = mlp_parameters(mlp);
+    int paramsCount = mlp_nparams(mlp);
+    for (int i = 0; i < paramsCount; i++) {
+      params[i]->grad = 0.0;
+    }
+    value_backpropagate_graph(mse_loss);
 
     // update parameters
-    Value **allValues = mlp_parameters(mlp);
-    for (int i = 0; i < mlp_nparams(mlp); i++) {
-      allValues[i]->data += -learningRate * allValues[i]->grad;
+    for (int i = 0; i < paramsCount; i++) {
+      params[i]->data += -learningRate * params[i]->grad;
     }
 
-    printf("%d %.15lf\n", i, lossSum->data);
+    printf("%d %.15lf\n", epoch, mse_loss->data);
+
+    value_list_free(outputs_list);
   }
   mlp_free(mlp);
   free(xs);
@@ -158,10 +207,10 @@ void trainingLoop() {
 }
 
 int main() {
-  // plot(tanhf);
-  // nnGraph();
-  // nn1();
-  // layer1();
-  // mlp1();
+  plot(tanhf);
+  nnGraph();
+  nn1();
+  layer1();
+  mlp1();
   trainingLoop();
 }

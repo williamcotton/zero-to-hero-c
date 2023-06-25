@@ -3,10 +3,16 @@
 
 #include "value.h"
 
+typedef struct ValueList {
+  Value *value;
+  struct ValueList *next;
+} ValueList;
+
 typedef struct Neuron {
   Value **w;
   Value *b;
   int nin;
+  ValueList *out;
 } Neuron;
 
 Neuron *neuron_create(int nin);
@@ -33,7 +39,9 @@ typedef struct MLP {
 } MLP;
 
 MLP *mlp_create(int nin, int *nouts, int n);
-Value **mlp_call(MLP *mlp, Value **x);
+ValueList *mlp_call(MLP *mlp, Value **x);
+void value_list_free(ValueList *list);
+ValueList *value_list_append(ValueList *list, Value *value);
 void mlp_update_graph(MLP *mlp);
 Value **mlp_parameters(MLP *mlp);
 int mlp_nparams(MLP *mlp);
