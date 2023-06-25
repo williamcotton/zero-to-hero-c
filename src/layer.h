@@ -10,7 +10,7 @@ typedef struct Layer {
   int nout;
 } Layer;
 
-Layer *layer_create(int nin, int nout);
+Layer *layer_create(int nin, int nout, int layer_id);
 Value **layer_call(Layer *layer, Value **x, Value **outs);
 Value **layer_parameters(Layer *layer);
 int layer_nparams(Layer *layer);

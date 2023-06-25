@@ -69,7 +69,7 @@ Value *value_divide(Value *v1, Value *v2) {
 }
 
 Value *value_negate(Value *v) {
-  Value *result = value_multiply(v, value_create(-1.0, NULL));
+  Value *result = value_multiply(v, value_create(-1.0, "negate"));
   return result;
 }
 
@@ -164,7 +164,11 @@ void value_free_graph(Value *output) {
 void value_print(Value *v, int depth) {
   for (int i = 0; i < depth; i++)
     printf("\t");
-  printf("Value:\n");
+  printf("Value\n");
+
+  for (int i = 0; i < depth; i++)
+    printf("\t");
+  printf("-----\n");
 
   for (int i = 0; i < depth; i++)
     printf("\t");

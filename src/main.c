@@ -79,7 +79,7 @@ void nn1() {
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
 
-  Neuron *neuron = neuron_create(2);
+  Neuron *neuron = neuron_create(2, 0, 0);
   neuron_print(neuron);
   Value *result = neuron_call(neuron, x);
   value_print(result, 0);
@@ -93,7 +93,7 @@ void layer1() {
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
 
-  Layer *layer = layer_create(2, 3);
+  Layer *layer = layer_create(2, 3, 0);
   Value **outs = malloc(sizeof(Value *) * layer->nout);
   Value **result = layer_call(layer, x, outs);
   for (int i = 0; i < 3; i++) {
@@ -108,9 +108,9 @@ void mlp1() {
   print_banner("mlp1");
 
   Value *x[3];
-  x[0] = value_create(2.0, NULL);
-  x[1] = value_create(3.0, NULL);
-  x[2] = value_create(-1.0, NULL);
+  x[0] = value_create(2.0, "2.0");
+  x[1] = value_create(3.0, "3.0");
+  x[2] = value_create(-1.0, "-1.0");
 
   int finalCount = 1;
 
@@ -135,27 +135,27 @@ void trainingLoop() {
   int outputCount = 4;
   Value ***xs = malloc(sizeof(Value **) * outputCount);
   xs[0] = malloc(sizeof(Value *) * 3);
-  xs[0][0] = value_create(2.0, NULL);
-  xs[0][1] = value_create(3.0, NULL);
-  xs[0][2] = value_create(-1.0, NULL);
+  xs[0][0] = value_create(2.0, "2.0");
+  xs[0][1] = value_create(3.0, "3.0");
+  xs[0][2] = value_create(-1.0, "-1.0");
   xs[1] = malloc(sizeof(Value *) * 3);
-  xs[1][0] = value_create(3.0, NULL);
-  xs[1][1] = value_create(-1.0, NULL);
-  xs[1][2] = value_create(0.5, NULL);
+  xs[1][0] = value_create(3.0, "3.0");
+  xs[1][1] = value_create(-1.0, "-1.0");
+  xs[1][2] = value_create(0.5, "0.5");
   xs[2] = malloc(sizeof(Value *) * 3);
-  xs[2][0] = value_create(0.5, NULL);
-  xs[2][1] = value_create(1.0, NULL);
-  xs[2][2] = value_create(1.0, NULL);
+  xs[2][0] = value_create(0.5, "0.5");
+  xs[2][1] = value_create(1.0, "1.0");
+  xs[2][2] = value_create(1.0, "1.0");
   xs[3] = malloc(sizeof(Value *) * 3);
-  xs[3][0] = value_create(1.0, NULL);
-  xs[3][1] = value_create(1.0, NULL);
-  xs[3][2] = value_create(-1.0, NULL);
+  xs[3][0] = value_create(1.0, "1.0");
+  xs[3][1] = value_create(1.0, "1.0");
+  xs[3][2] = value_create(-1.0, "-1.0");
 
   Value **ys = malloc(sizeof(Value *) * 4);
-  ys[0] = value_create(1.0, NULL);
-  ys[1] = value_create(-1.0, NULL);
-  ys[2] = value_create(-1.0, NULL);
-  ys[3] = value_create(1.0, NULL);
+  ys[0] = value_create(1.0, "1.0");
+  ys[1] = value_create(-1.0, "-1.0");
+  ys[2] = value_create(-1.0, "-1.0");
+  ys[3] = value_create(1.0, "1.0");
 
   int nouts[3] = {4, 4, 1};
   MLP *mlp = mlp_create(3, nouts, 3);
@@ -165,15 +165,14 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochs; epoch++) {
     // forward pass
-    Value *mse_loss = value_create(0.0, NULL);
+    Value *mse_loss = value_create(0.0, "mse_loss");
     ValueList *outputs_list = NULL;
 
     for (int i = 0; i < outputCount; i++) {
       ValueList *ypreds = mlp_call(mlp, xs[i]);
       outputs_list = ypreds;
 
-      Value *ypred =
-          ypreds->value; // assuming mlp_call returns list with single `Value`
+      Value *ypred = ypreds->value;
       Value *diff = value_subtract(ypred, ys[i]);
       Value *loss = value_power(diff, 2);
       mse_loss = value_add(mse_loss, loss);

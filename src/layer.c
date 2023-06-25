@@ -2,11 +2,11 @@
 #include "neuron.h"
 #include <stdlib.h>
 
-Layer *layer_create(int nin, int nout) {
+Layer *layer_create(int nin, int nout, int layer_id) {
   Layer *layer = malloc(sizeof(Layer));
   layer->neurons = malloc(sizeof(Neuron *) * nout);
   for (int i = 0; i < nout; i++) {
-    layer->neurons[i] = neuron_create(nin);
+    layer->neurons[i] = neuron_create(nin, layer_id, i);
   }
   layer->nin = nin;
   layer->nout = nout;

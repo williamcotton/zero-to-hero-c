@@ -2,15 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Neuron *neuron_create(int nin) {
+Neuron *neuron_create(int nin, int layer_id, int neuron_id) {
   Neuron *neuron = malloc(sizeof(Neuron));
   neuron->w = malloc(sizeof(Value *) * nin);
   for (int i = 0; i < nin; i++) {
+    char *wiLabel = malloc(100 * sizeof(char));
+    sprintf(wiLabel, "w%d_%d_%d", layer_id, neuron_id, i);
     neuron->w[i] = value_create(
-        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
+        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
+        wiLabel);
   }
+  char *bLabel = malloc(100 * sizeof(char));
+  sprintf(bLabel, "b%d_%d", layer_id, neuron_id);
   neuron->b = value_create(
-      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
+      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, bLabel);
   neuron->nin = nin;
   neuron->out = NULL;
   return neuron;

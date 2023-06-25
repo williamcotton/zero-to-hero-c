@@ -7,7 +7,7 @@ MLP *mlp_create(int nin, int *nouts, int n) {
   MLP *mlp = malloc(sizeof(MLP));
   mlp->layers = malloc(sizeof(Layer *) * n);
   for (int i = 0; i < n; i++) {
-    mlp->layers[i] = layer_create(i == 0 ? nin : nouts[i - 1], nouts[i]);
+    mlp->layers[i] = layer_create(i == 0 ? nin : nouts[i - 1], nouts[i], i);
   }
   mlp->n = n;
   return mlp;

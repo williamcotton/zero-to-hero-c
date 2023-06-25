@@ -10,7 +10,7 @@ typedef struct Neuron {
   ValueList *out;
 } Neuron;
 
-Neuron *neuron_create(int nin);
+Neuron *neuron_create(int nin, int layer_id, int neuron_id);
 Value *neuron_call(Neuron *neuron, Value **x);
 Value **neuron_parameters(Neuron *neuron);
 void neuron_print(Neuron *neuron);
