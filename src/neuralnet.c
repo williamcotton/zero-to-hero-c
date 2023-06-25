@@ -7,10 +7,10 @@ Neuron *neuron_create(int nin) {
   Neuron *neuron = malloc(sizeof(Neuron));
   neuron->w = malloc(sizeof(Value *) * nin);
   for (int i = 0; i < nin; i++) {
-    neuron->w[i] = initValue(
+    neuron->w[i] = value_create(
         (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   }
-  neuron->b = initValue(
+  neuron->b = value_create(
       (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   neuron->nin = nin;
   return neuron;
@@ -19,18 +19,18 @@ Neuron *neuron_create(int nin) {
 Value *neuron_call(Neuron *neuron, Value **x) {
   Value *act = neuron->b;
   for (int i = 0; i < neuron->nin; i++) {
-    act = add(act, multiply(neuron->w[i], x[i]));
+    act = value_add(act, value_multiply(neuron->w[i], x[i]));
   }
-  Value *out = tanhv(act);
+  Value *out = value_tanhv(act);
   return out;
 }
 
 void neuron_free(Neuron *neuron) {
   for (int i = 0; i < neuron->nin; i++) {
-    freeValue(neuron->w[i]);
+    value_free(neuron->w[i]);
   }
   free(neuron->w);
-  freeValue(neuron->b);
+  value_free(neuron->b);
   free(neuron);
 }
 
@@ -49,15 +49,13 @@ Layer *layer_create(int nin, int nout) {
   layer->neurons = malloc(sizeof(Neuron *) * nout);
   for (int i = 0; i < nout; i++) {
     layer->neurons[i] = neuron_create(nin);
-    neuron_print(layer->neurons[i]);
   }
   layer->nin = nin;
   layer->nout = nout;
   return layer;
 }
 
-Value **layer_call(Layer *layer, Value **x) {
-  Value **outs = malloc(sizeof(Value *) * layer->nout);
+Value **layer_call(Layer *layer, Value **x, Value **outs) {
   for (int i = 0; i < layer->nout; i++) {
     outs[i] = neuron_call(layer->neurons[i], x);
   }
@@ -82,23 +80,39 @@ MLP *mlp_create(int nin, int *nouts, int n) {
   return mlp;
 }
 
-Value *mlp_call(MLP *mlp, Value *x) {
-  Value *out = x;
+void mlp_print(MLP *mlp) {
+  printf("\n=-=-=-=-=\n   MLP\n=-=-=-=-=\n");
   for (int i = 0; i < mlp->n; i++) {
-    Value **outs = layer_call(mlp->layers[i], &out);
-    if (mlp->layers[i]->nout == 1) {
-      out = outs[0];
-      // free(outs);
-    } else {
-      out = initValue(0.0, NULL);
-      for (int j = 0; j < mlp->layers[i]->nout; j++) {
-        out = add(out, outs[j]);
-        // freeValue(outs[j]);
+    printf("\nLayer %d: nin=%d nout=%d\n=============================\n", i,
+           mlp->layers[i]->nin, mlp->layers[i]->nout);
+    for (int j = 0; j < mlp->layers[i]->nout; j++) {
+      neuron_print(mlp->layers[i]->neurons[j]);
+    }
+    printf("-----------------------------\n\n");
+  }
+}
+
+Value **mlp_call(MLP *mlp, Value **x) {
+  Value **xs = x;
+  for (int i = 0; i < mlp->n; i++) {
+    Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
+    xs = layer_call(mlp->layers[i], xs, outs);
+  }
+  return xs;
+}
+
+void mlp_update_graph(MLP *mlp) {
+  double learning_rate = 0.01;
+  for (int i = 0; i < mlp->n; i++) {
+    for (int j = 0; j < mlp->layers[i]->nout; j++) {
+      for (int k = 0; k < mlp->layers[i]->neurons[j]->nin; k++) {
+        mlp->layers[i]->neurons[j]->w[k]->data -=
+            mlp->layers[i]->neurons[j]->w[k]->grad;
       }
-      // free(outs);
+      mlp->layers[i]->neurons[j]->b->data -=
+          learning_rate * mlp->layers[i]->neurons[j]->b->grad;
     }
   }
-  return out;
 }
 
 void mlp_free(MLP *mlp) {

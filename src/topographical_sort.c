@@ -23,13 +23,13 @@ void topolist_free(TopoList *list) {
   free(list);
 }
 
-void topographicalSort(Value *v, TopoList *topo, int *index, HashSet *visited) {
+void topolist_sort(Value *v, TopoList *topo, int *index, HashSet *visited) {
   if (hashset_contains(visited, v)) {
     return;
   }
   hashset_add(visited, v);
   for (int i = 0; i < v->num_children; i++) {
-    topographicalSort(v->children[i], topo, index, visited);
+    topolist_sort(v->children[i], topo, index, visited);
   }
   topolist_add(topo, v);
   (*index)++;

@@ -5,23 +5,33 @@
 
 #define UNUSED __attribute__((unused))
 
-typedef struct Value {
+typedef struct Value Value;
+struct Value {
   double data;
   char *label;
   char *operation;
-  struct Value **children;
+  Value **children;
   int num_children;
-  float grad;
-} Value;
+  double grad;
+  void (*backward)(Value *v);
+  double v2;
+};
 
-Value *add(Value *v1, Value *v2);
-Value *multiply(Value *v1, Value *v2);
-Value *expv(Value *v);
-Value *tanhv(Value *v);
-Value *initValue(float data, char *label);
-void printValue(Value *v);
-void freeValue(Value *v);
-void backpropagate(Value *v);
-void backpropagateGraph(Value *output);
+Value *value_add(Value *v1, Value *v2);
+Value *value_subtract(Value *v1, Value *v2);
+Value *value_multiply(Value *v1, Value *v2);
+Value *value_divide(Value *v1, Value *v2);
+Value *value_expv(Value *v);
+Value *value_tanhv(Value *v);
+// Value *value_sum(Value **values, int num_values);
+Value *value_create(double data, char *label);
+Value *value_power(Value *v1, double v2);
+void value_print(Value *v);
+Value *value_copy(Value *dst, Value *src);
+void value_free(Value *v);
+void value_backpropagate_graph(Value *output);
+void value_update_graph(Value *output, float learning_rate);
+void value_zero_grad_graph(Value *output);
+void value_free_graph(Value *output);
 
 #endif
