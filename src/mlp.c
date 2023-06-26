@@ -54,20 +54,6 @@ ValueList *mlp_call(MLP *mlp, Value **x) {
   return first;
 }
 
-void mlp_update_graph(MLP *mlp) {
-  double learning_rate = 0.01;
-  for (int i = 0; i < mlp->nlayers; i++) {
-    for (int j = 0; j < mlp->layers[i]->nout; j++) {
-      for (int k = 0; k < mlp->layers[i]->neurons[j]->nin; k++) {
-        mlp->layers[i]->neurons[j]->w[k]->data -=
-            mlp->layers[i]->neurons[j]->w[k]->grad;
-      }
-      mlp->layers[i]->neurons[j]->b->data -=
-          learning_rate * mlp->layers[i]->neurons[j]->b->grad;
-    }
-  }
-}
-
 int mlp_nparams(MLP *mlp) {
   int total = 0;
   for (int i = 0; i < mlp->nlayers; i++) {
