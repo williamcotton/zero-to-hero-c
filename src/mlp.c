@@ -49,15 +49,10 @@ Value *mlp_call(MLP *mlp, Value **x) {
       out = outs[0];
     }
   }
-  Value *outCopy = malloc(sizeof(Value));
-  *outCopy = *out;
-
   for (int i = 0; i < mlp->nlayers; i++) {
     free(mlp->layerOuts[i]);
   }
-  if (outCopy)
-    outCopy->label = "out";
-  return outCopy;
+  return out;
 }
 
 int mlp_nparams(MLP *mlp) {

@@ -148,7 +148,7 @@ void trainingLoop() {
       .nlayers = 3,
   });
 
-  int epochsCount = 30;
+  int epochsCount = 1;
   double learningRate = 0.05;
 
   Value **lossFunctions = malloc(sizeof(Value *) * epochsCount);
@@ -209,30 +209,24 @@ void trainingLoop() {
     free(params);
   }
   // after loop
-
   mlp_free(mlp);
-  free_value_vector(ys, 4);
-
-  for (int i = 0; i < outputCount; i++) {
-    free_value_vector(xs[i], 3);
-  }
-
-  // free(xs);
-  // free(ys);
-
   for (int i = 0; i < lossFunctionsIndex; i++) {
     value_free(lossFunctions[i]);
   }
-
   free(lossFunctions);
+  free_value_vector(ys, 4);
+  for (int i = 0; i < outputCount; i++) {
+    free_value_vector(xs[i], 3);
+  }
+  free(xs);
 }
 
 int main() {
-  // plot(tanhf, "images/tanhf.png");
-  // plot(quadratic, "images/quadratic.png");
-  // nnGraph();
-  // nn1();
-  // layer1();
-  // mlp1();
+  plot(tanhf, "images/tanhf.png");
+  plot(quadratic, "images/quadratic.png");
+  nnGraph();
+  nn1();
+  layer1();
+  mlp1();
   trainingLoop();
 }
