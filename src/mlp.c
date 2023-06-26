@@ -11,7 +11,7 @@ MLP *mlp_create(mlp_params params) {
                                   params.nouts[i], i);
   }
   mlp->nlayers = params.nlayers;
-  mlp->layerOuts = malloc(sizeof(Value **) * params.nlayers);
+  // mlp->layerOuts = malloc(sizeof(Value **) * params.nlayers);
   return mlp;
 }
 
@@ -26,7 +26,7 @@ void mlp_print(MLP *mlp) {
   }
 }
 
-ValueList *mlp_call(MLP *mlp, Value **x) {
+Value *mlp_call(MLP *mlp, Value **x) {
   if (mlp->nlayers == 0) {
     printf("Error: MLP has no layers\n");
     return NULL;
@@ -39,19 +39,17 @@ ValueList *mlp_call(MLP *mlp, Value **x) {
     printf("Error: Input is NULL\n");
     return NULL;
   }
-  ValueList *first = NULL, *current = NULL;
+  Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
+    // printf("Layer %d\n", i);
     Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
-    mlp->layerOuts[i] = outs;
+    // mlp->layerOuts[i] = outs;
     x = layer_call(mlp->layers[i], x, outs);
-    for (int j = 0; j < mlp->layers[i]->nout; j++) {
-      current = value_list_append(current, outs[j]);
-      if (first == NULL) {
-        first = current;
-      }
+    if (i == mlp->nlayers - 1) {
+      out = outs[0];
     }
   }
-  return first;
+  return out;
 }
 
 int mlp_nparams(MLP *mlp) {
@@ -86,9 +84,6 @@ void mlp_free(MLP *mlp) {
     layer_free(mlp->layers[i]);
   }
   free(mlp->layers);
-  for (int i = 0; i < mlp->nlayers; i++) {
-    free(mlp->layerOuts[i]);
-  }
-  free(mlp->layerOuts);
+  // free(mlp->layerOuts);
   free(mlp);
 }

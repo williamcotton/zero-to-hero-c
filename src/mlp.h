@@ -7,7 +7,7 @@
 typedef struct MLP {
   Layer **layers;
   int nlayers;
-  Value ***layerOuts;
+  // Value ***layerOuts;
 } MLP;
 
 typedef struct mlp_params {
@@ -17,10 +17,11 @@ typedef struct mlp_params {
 } mlp_params;
 
 MLP *mlp_create(mlp_params params);
-ValueList *mlp_call(MLP *mlp, Value **x);
+Value *mlp_call(MLP *mlp, Value **x);
 Value **mlp_parameters(MLP *mlp);
 int mlp_nparams(MLP *mlp);
 void mlp_print(MLP *mlp);
 void mlp_free(MLP *mlp);
+void mlp_free_layer_outs(MLP *mlp);
 
 #endif

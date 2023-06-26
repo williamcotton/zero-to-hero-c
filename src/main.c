@@ -122,13 +122,8 @@ void mlp1() {
 
   mlp_print(mlp);
 
-  ValueList *ypreds = mlp_call(mlp, x);
-  ValueList *current = ypreds;
-  while (current != NULL) {
-    printf("Output: %.15lf\n", current->value->data);
-    current = current->next;
-  }
-  value_list_free(ypreds);
+  Value *ypred = mlp_call(mlp, x);
+  value_print(ypred, 0);
   free_value_vector(x, 3);
   mlp_free(mlp);
 }
@@ -159,20 +154,12 @@ void trainingLoop() {
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
     Value *mseLoss = value_create(0.0, "mse_loss");
-    ValueList *outputsList = NULL;
 
     for (int i = 0; i < outputCount; i++) {
-      ValueList *ypreds = mlp_call(mlp, xs[i]);
-      outputsList = ypreds;
-
-      Value *ypred = ypreds->value;
+      Value *ypred = mlp_call(mlp, xs[i]);
       Value *diff = value_subtract(ypred, ys[i]);
       Value *loss = value_power(diff, 2);
       mseLoss = value_add(mseLoss, loss);
-
-      outputsList = value_list_append(outputsList, diff);
-      outputsList = value_list_append(outputsList, loss);
-      outputsList = value_list_append(outputsList, mseLoss);
 
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
@@ -193,20 +180,16 @@ void trainingLoop() {
     }
 
     printf("%d %.15lf\n", epoch, mseLoss->data);
-
-    value_list_free(outputsList);
   }
   mlp_free(mlp);
-  free(xs);
-  free(ys);
 }
 
 int main() {
-  plot(tanhf, "images/tanhf.png");
-  plot(quadratic, "images/quadratic.png");
-  nnGraph();
-  nn1();
-  layer1();
-  mlp1();
-  // trainingLoop();
+  // plot(tanhf, "images/tanhf.png");
+  // plot(quadratic, "images/quadratic.png");
+  // nnGraph();
+  // nn1();
+  // layer1();
+  // mlp1();
+  trainingLoop();
 }
