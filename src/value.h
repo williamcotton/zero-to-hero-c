@@ -39,6 +39,7 @@ void value_free(Value *v);
 void value_free_nested(Value *v);
 void value_list_free(ValueList *list);
 void free_value_vector(Value **values, int size);
+void value_print_nested(Value *v, int depth);
 ValueList *value_list_append(ValueList *list, Value *value);
 
 #endif

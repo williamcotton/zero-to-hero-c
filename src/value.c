@@ -73,8 +73,23 @@ Value *value_negate(Value *v) {
   return result;
 }
 
+static void value_sub_backward(Value *v) {
+  v->children[0]->grad += 1.0 * v->grad;
+  v->children[1]->grad += -1.0 * v->grad;
+}
+
 Value *value_subtract(Value *v1, Value *v2) {
-  return value_add(v1, value_negate(v2));
+  Value *result = malloc(sizeof(Value));
+  result->label = NULL;
+  result->data = v1->data - v2->data;
+  result->operation = "-";
+  result->num_children = 2;
+  result->children = malloc(sizeof(Value *) * result->num_children);
+  result->children[0] = v1;
+  result->children[1] = v2;
+  result->grad = 0.0;
+  result->backward = value_sub_backward;
+  return result;
 }
 
 static double tanh_double(double x) {
@@ -247,4 +262,20 @@ void value_free_nested(Value *v) {
   }
   free(v->children);
   free(v);
+}
+
+void value_print_nested(Value *v, int depth) {
+  if (v && v->label && strcmp(v->label, "out") == 0) {
+    printf("Value\n");
+    printf("-----\n");
+    printf("Label: %s\n", v->label);
+    printf("Data: %f\n", v->data);
+    printf("Grad: %f\n", v->grad);
+    printf("Operation: %s\n", v->operation);
+    return;
+  }
+  printf("Label: %s\n", v->label);
+  for (int i = 0; i < v->num_children; i++) {
+    value_print_nested(v->children[i], depth--);
+  }
 }

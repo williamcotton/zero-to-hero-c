@@ -7,7 +7,8 @@
 typedef struct MLP {
   Layer **layers;
   int nlayers;
-  // Value ***layerOuts;
+  Value ***layerOuts;
+  int outputCount;
 } MLP;
 
 typedef struct mlp_params {
