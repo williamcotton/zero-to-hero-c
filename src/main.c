@@ -115,7 +115,11 @@ void mlp1() {
   int finalCount = 1;
 
   int nouts[3] = {4, 4, finalCount};
-  MLP *mlp = mlp_create(3, nouts, 3);
+  MLP *mlp = mlp_create((mlp_params){
+      .nin = 3,
+      .nouts = nouts,
+      .nlayers = 3,
+  });
 
   mlp_print(mlp);
 
@@ -158,7 +162,11 @@ void trainingLoop() {
   ys[3] = value_create(1.0, "1.0");
 
   int nouts[3] = {4, 4, 1};
-  MLP *mlp = mlp_create(3, nouts, 3);
+  MLP *mlp = mlp_create((mlp_params){
+      .nin = 3,
+      .nouts = nouts,
+      .nlayers = 3,
+  });
 
   int epochs = 30;
   double learningRate = 0.05;

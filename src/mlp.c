@@ -3,18 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-MLP *mlp_create(int nin, int *nouts, int n) {
+MLP *mlp_create(mlp_params params) {
   MLP *mlp = malloc(sizeof(MLP));
-  mlp->layers = malloc(sizeof(Layer *) * n);
-  for (int i = 0; i < n; i++) {
-    mlp->layers[i] = layer_create(i == 0 ? nin : nouts[i - 1], nouts[i], i);
+  mlp->layers = malloc(sizeof(Layer *) * params.nlayers);
+  for (int i = 0; i < params.nlayers; i++) {
+    mlp->layers[i] = layer_create(i == 0 ? params.nin : params.nouts[i - 1],
+                                  params.nouts[i], i);
   }
-  mlp->n = n;
+  mlp->nlayers = params.nlayers;
   return mlp;
 }
 
 void mlp_print(MLP *mlp) {
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     printf("\nLayer %d: nin=%d nout=%d\n=============================\n", i,
            mlp->layers[i]->nin, mlp->layers[i]->nout);
     for (int j = 0; j < mlp->layers[i]->nout; j++) {
@@ -25,7 +26,7 @@ void mlp_print(MLP *mlp) {
 }
 
 ValueList *mlp_call(MLP *mlp, Value **x) {
-  if (mlp->n == 0) {
+  if (mlp->nlayers == 0) {
     printf("Error: MLP has no layers\n");
     return NULL;
   }
@@ -38,7 +39,7 @@ ValueList *mlp_call(MLP *mlp, Value **x) {
     return NULL;
   }
   ValueList *first = NULL, *current = NULL;
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
     x = layer_call(mlp->layers[i], x, outs);
     for (int j = 0; j < mlp->layers[i]->nout; j++) {
@@ -53,7 +54,7 @@ ValueList *mlp_call(MLP *mlp, Value **x) {
 
 void mlp_update_graph(MLP *mlp) {
   double learning_rate = 0.01;
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     for (int j = 0; j < mlp->layers[i]->nout; j++) {
       for (int k = 0; k < mlp->layers[i]->neurons[j]->nin; k++) {
         mlp->layers[i]->neurons[j]->w[k]->data -=
@@ -67,7 +68,7 @@ void mlp_update_graph(MLP *mlp) {
 
 int mlp_nparams(MLP *mlp) {
   int total = 0;
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     int layerCount = layer_nparams(mlp->layers[i]);
     total += layerCount;
   }
@@ -81,7 +82,7 @@ Value **mlp_parameters(MLP *mlp) {
   }
   Value **params = calloc(paramCount, sizeof(Value *));
   int idx = 0;
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     Value **layer_params = layer_parameters(mlp->layers[i]);
     int layerCount = layer_nparams(mlp->layers[i]);
     for (int j = 0; j < layerCount; j++) {
@@ -93,7 +94,7 @@ Value **mlp_parameters(MLP *mlp) {
 }
 
 void mlp_free(MLP *mlp) {
-  for (int i = 0; i < mlp->n; i++) {
+  for (int i = 0; i < mlp->nlayers; i++) {
     layer_free(mlp->layers[i]);
   }
   free(mlp->layers);

@@ -6,10 +6,16 @@
 
 typedef struct MLP {
   Layer **layers;
-  int n;
+  int nlayers;
 } MLP;
 
-MLP *mlp_create(int nin, int *nouts, int n);
+typedef struct mlp_params {
+  int nin;
+  int *nouts;
+  int nlayers;
+} mlp_params;
+
+MLP *mlp_create(mlp_params params);
 ValueList *mlp_call(MLP *mlp, Value **x);
 void mlp_update_graph(MLP *mlp);
 Value **mlp_parameters(MLP *mlp);
