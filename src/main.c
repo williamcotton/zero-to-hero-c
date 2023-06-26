@@ -107,10 +107,7 @@ void layer1() {
 void mlp1() {
   print_banner("mlp1");
 
-  Value *x[3];
-  x[0] = value_create(2.0, "2.0");
-  x[1] = value_create(3.0, "3.0");
-  x[2] = value_create(-1.0, "-1.0");
+  Value **x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -150,28 +147,28 @@ void trainingLoop() {
       .nlayers = 3,
   });
 
-  int epochs = 30;
+  int epochsCount = 30;
   double learningRate = 0.05;
 
-  for (int epoch = 0; epoch < epochs; epoch++) {
+  for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
-    Value *mse_loss = value_create(0.0, "mse_loss");
-    ValueList *outputs_list = NULL;
+    Value *mseLoss = value_create(0.0, "mse_loss");
+    ValueList *outputsList = NULL;
 
     for (int i = 0; i < outputCount; i++) {
       ValueList *ypreds = mlp_call(mlp, xs[i]);
-      outputs_list = ypreds;
+      outputsList = ypreds;
 
       Value *ypred = ypreds->value;
       Value *diff = value_subtract(ypred, ys[i]);
       Value *loss = value_power(diff, 2);
-      mse_loss = value_add(mse_loss, loss);
+      mseLoss = value_add(mseLoss, loss);
 
-      outputs_list = value_list_append(outputs_list, diff);
-      outputs_list = value_list_append(outputs_list, loss);
-      outputs_list = value_list_append(outputs_list, mse_loss);
+      outputsList = value_list_append(outputsList, diff);
+      outputsList = value_list_append(outputsList, loss);
+      outputsList = value_list_append(outputsList, mseLoss);
 
-      if (epoch == epochs - 1) {
+      if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }
     }
@@ -182,16 +179,16 @@ void trainingLoop() {
     for (int i = 0; i < paramsCount; i++) {
       params[i]->grad = 0.0;
     }
-    value_backpropagate_graph(mse_loss);
+    value_backpropagate_graph(mseLoss);
 
     // update parameters
     for (int i = 0; i < paramsCount; i++) {
       params[i]->data += -learningRate * params[i]->grad;
     }
 
-    printf("%d %.15lf\n", epoch, mse_loss->data);
+    printf("%d %.15lf\n", epoch, mseLoss->data);
 
-    value_list_free(outputs_list);
+    value_list_free(outputsList);
   }
   mlp_free(mlp);
   free(xs);
