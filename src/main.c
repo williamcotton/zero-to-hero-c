@@ -112,12 +112,9 @@ void mlp1() {
   x[1] = value_create(3.0, "3.0");
   x[2] = value_create(-1.0, "-1.0");
 
-  int finalCount = 1;
-
-  int nouts[3] = {4, 4, finalCount};
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
-      .nouts = nouts,
+      .nouts = (int[]){4, 4, 1},
       .nlayers = 3,
   });
 
@@ -137,34 +134,19 @@ void trainingLoop() {
   print_banner("trainingLoop");
 
   int outputCount = 4;
+  double xs_data[][3] = {
+      {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
   Value ***xs = malloc(sizeof(Value **) * outputCount);
-  xs[0] = malloc(sizeof(Value *) * 3);
-  xs[0][0] = value_create(2.0, "2.0");
-  xs[0][1] = value_create(3.0, "3.0");
-  xs[0][2] = value_create(-1.0, "-1.0");
-  xs[1] = malloc(sizeof(Value *) * 3);
-  xs[1][0] = value_create(3.0, "3.0");
-  xs[1][1] = value_create(-1.0, "-1.0");
-  xs[1][2] = value_create(0.5, "0.5");
-  xs[2] = malloc(sizeof(Value *) * 3);
-  xs[2][0] = value_create(0.5, "0.5");
-  xs[2][1] = value_create(1.0, "1.0");
-  xs[2][2] = value_create(1.0, "1.0");
-  xs[3] = malloc(sizeof(Value *) * 3);
-  xs[3][0] = value_create(1.0, "1.0");
-  xs[3][1] = value_create(1.0, "1.0");
-  xs[3][2] = value_create(-1.0, "-1.0");
+  for (int i = 0; i < outputCount; i++) {
+    xs[i] = value_create_vector(xs_data[i], 3);
+  }
 
-  Value **ys = malloc(sizeof(Value *) * 4);
-  ys[0] = value_create(1.0, "1.0");
-  ys[1] = value_create(-1.0, "-1.0");
-  ys[2] = value_create(-1.0, "-1.0");
-  ys[3] = value_create(1.0, "1.0");
+  Value **ys =
+      value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount);
 
-  int nouts[3] = {4, 4, 1};
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
-      .nouts = nouts,
+      .nouts = (int[]){4, 4, 1},
       .nlayers = 3,
   });
 

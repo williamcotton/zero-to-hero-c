@@ -34,7 +34,7 @@ Value *value_power(Value *v1, double v2);
 void value_print(Value *v, int depth);
 void value_backpropagate_graph(Value *output);
 void value_free_graph(Value *output);
-Value **value_create_array(double *data, int size);
+Value **value_create_vector(double *data, int size);
 void value_free(Value *v);
 void value_list_free(ValueList *list);
 ValueList *value_list_append(ValueList *list, Value *value);

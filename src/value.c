@@ -127,6 +127,16 @@ Value *value_create(double data, char *label) {
   return result;
 }
 
+Value **value_create_vector(double *data, int size) {
+  Value **values = malloc(sizeof(Value *) * size);
+  for (int i = 0; i < size; i++) {
+    char label[10];
+    snprintf(label, 10, "%f", data[i]);
+    values[i] = value_create(data[i], label);
+  }
+  return values;
+}
+
 void value_backpropagate_graph(Value *output) {
   TopoList *topo = topolist_create(10);
   int index = 0;
