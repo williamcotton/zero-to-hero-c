@@ -132,6 +132,7 @@ void trainingLoop() {
   print_banner("trainingLoop");
 
   int outputCount = 4;
+
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
   Value ***xs = malloc(sizeof(Value **) * outputCount);
@@ -148,16 +149,13 @@ void trainingLoop() {
       .nlayers = 3,
   });
 
-  int epochsCount = 1;
+  int epochsCount = 30;
   double learningRate = 0.05;
-
-  Value **lossFunctions = malloc(sizeof(Value *) * epochsCount);
-  int lossFunctionsIndex = 0;
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
     Value *mseLoss = value_create(0.0, "mse_loss");
-    lossFunctions[lossFunctionsIndex++] = mseLoss;
+    mlp_add_loss_function(mlp, mseLoss);
 
     int lossFunctionValuesCount = outputCount * 3;
     int lossFunctionValuesIndex = 0;
@@ -210,10 +208,6 @@ void trainingLoop() {
   }
   // after loop
   mlp_free(mlp);
-  for (int i = 0; i < lossFunctionsIndex; i++) {
-    value_free(lossFunctions[i]);
-  }
-  free(lossFunctions);
   free_value_vector(ys, 4);
   for (int i = 0; i < outputCount; i++) {
     free_value_vector(xs[i], 3);

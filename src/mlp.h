@@ -9,6 +9,7 @@ typedef struct MLP {
   int nlayers;
   Value ***layerOuts;
   int outputCount;
+  ValueList *losses;
 } MLP;
 
 typedef struct mlp_params {
@@ -23,6 +24,7 @@ Value **mlp_parameters(MLP *mlp);
 int mlp_nparams(MLP *mlp);
 void mlp_print(MLP *mlp);
 void mlp_free(MLP *mlp);
-void mlp_free_layer_outs(MLP *mlp);
+void mlp_add_loss_function(MLP *mlp, Value *loss);
+void mlp_free_loss_functions(MLP *mlp);
 
 #endif
