@@ -156,30 +156,9 @@ void trainingLoop() {
     // forward pass
     Value *mseLoss = value_create(0.0, "mse_loss");
     mlp_add_loss_function(mlp, mseLoss);
-
-    int lossFunctionValuesCount = outputCount * 3;
-    int lossFunctionValuesIndex = 0;
-    Value **lossFunctionValues =
-        malloc(sizeof(Value *) * lossFunctionValuesCount);
-
     for (int i = 0; i < outputCount; i++) {
       Value *ypred = mlp_call(mlp, xs[i]);
-      ypred->label = "ypred";
-
-      Value *diff = value_subtract(ypred, ys[i]);
-      diff->label = "diff";
-      lossFunctionValues[lossFunctionValuesIndex++] = diff;
-
-      Value *loss = value_power(diff, 2);
-      loss->label = "loss";
-      lossFunctionValues[lossFunctionValuesIndex++] = loss;
-
-      Value *add = value_add(mseLoss, loss);
-      add->label = "add";
-      lossFunctionValues[lossFunctionValuesIndex++] = add;
-
-      mseLoss = add;
-
+      mseLoss = mlp_value_mse_loss(mlp, mseLoss, ypred, ys[i]);
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }
@@ -200,14 +179,13 @@ void trainingLoop() {
 
     printf("%d %.15lf\n", epoch, mseLoss->data);
 
-    for (int i = 0; i < lossFunctionValuesCount; i++) {
-      value_free(lossFunctionValues[i]);
-    }
-    free(lossFunctionValues);
     free(params);
+    mlp_free_loss_functions(mlp);
   }
   // after loop
+
   mlp_free(mlp);
+
   free_value_vector(ys, 4);
   for (int i = 0; i < outputCount; i++) {
     free_value_vector(xs[i], 3);

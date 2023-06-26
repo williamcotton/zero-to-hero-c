@@ -105,6 +105,20 @@ void mlp_free_loss_functions(MLP *mlp) {
     free(curr);
     curr = next;
   }
+  mlp->losses = NULL;
+}
+
+Value *mlp_value_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys) {
+  Value *diff = value_subtract(ypred, ys);
+  mlp_add_loss_function(mlp, diff);
+
+  Value *loss = value_power(diff, 2);
+  mlp_add_loss_function(mlp, loss);
+
+  Value *add = value_add(mseLoss, loss);
+  mlp_add_loss_function(mlp, add);
+
+  return add;
 }
 
 void mlp_free(MLP *mlp) {

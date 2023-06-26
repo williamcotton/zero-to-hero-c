@@ -265,7 +265,11 @@ void value_free_nested(Value *v) {
 }
 
 void value_print_nested(Value *v, int depth) {
-  if (v && v->label && strcmp(v->label, "out") == 0) {
+  if (v == NULL) {
+    return;
+  }
+
+  if (v->label && strcmp(v->label, "out") == 0) {
     printf("Value\n");
     printf("-----\n");
     printf("Label: %s\n", v->label);
@@ -274,6 +278,7 @@ void value_print_nested(Value *v, int depth) {
     printf("Operation: %s\n", v->operation);
     return;
   }
+
   printf("Label: %s\n", v->label);
   for (int i = 0; i < v->num_children; i++) {
     value_print_nested(v->children[i], depth--);

@@ -12,9 +12,11 @@ SRCS = $(filter-out $(SRCDIR)/$(APP).c,$(wildcard $(SRCDIR)/*.c))
 OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 LIBS = $(LIBDIR)/libgnuplot_i.a
 
+APP_REQUIREMENTS = $(OBJS) $(LIBS) $(SRCDIR)/$(APP).c
+
 all: $(OBJDIR)/$(APP)
 
-$(OBJDIR)/$(APP): $(OBJS) $(LIBS) $(SRCDIR)/$(APP).c
+$(OBJDIR)/$(APP): $(APP_REQUIREMENTS)
 	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/$(APP).c $(OBJS) $(LDFLAGS) $(DEV_CFLAGS)
 
@@ -42,7 +44,7 @@ analyze:
 leaks-trace: trace
 	leaks --atExit -- ./$(OBJDIR)/$(APP)-trace
 
-$(OBJDIR)/$(APP)-trace: $(OBJS) $(LIBS) $(SRCDIR)/$(APP).c
+$(OBJDIR)/$(APP)-trace: $(APP_REQUIREMENTS)
 	mkdir -p $(OBJDIR)
 	$(CC) $(CFLAGS) -o $@ $(SRCDIR)/$(APP).c $(OBJS) $(LDFLAGS) $(TRACE_CFLAGS)
 
