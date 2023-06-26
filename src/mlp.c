@@ -108,7 +108,7 @@ void mlp_free_loss_functions(MLP *mlp) {
   mlp->losses = NULL;
 }
 
-Value *mlp_value_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys) {
+Value *mlp_compute_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys) {
   Value *diff = value_subtract(ypred, ys);
   mlp_add_loss_function(mlp, diff);
 
@@ -119,6 +119,12 @@ Value *mlp_value_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys) {
   mlp_add_loss_function(mlp, add);
 
   return add;
+}
+
+Value *mlp_create_mse_loss(MLP *mlp) {
+  Value *mseLoss = value_create(0.0, "mse_loss");
+  mlp_add_loss_function(mlp, mseLoss);
+  return mseLoss;
 }
 
 void mlp_free(MLP *mlp) {

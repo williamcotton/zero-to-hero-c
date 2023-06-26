@@ -25,7 +25,8 @@ int mlp_nparams(MLP *mlp);
 void mlp_print(MLP *mlp);
 void mlp_free(MLP *mlp);
 void mlp_add_loss_function(MLP *mlp, Value *loss);
-Value *mlp_value_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys);
+Value *mlp_compute_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys);
+Value *mlp_create_mse_loss(MLP *mlp);
 void mlp_free_loss_functions(MLP *mlp);
 
 #endif

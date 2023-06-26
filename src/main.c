@@ -154,11 +154,10 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
-    Value *mseLoss = value_create(0.0, "mse_loss");
-    mlp_add_loss_function(mlp, mseLoss);
+    Value *mseLoss = mlp_create_mse_loss(mlp);
     for (int i = 0; i < outputCount; i++) {
       Value *ypred = mlp_call(mlp, xs[i]);
-      mseLoss = mlp_value_mse_loss(mlp, mseLoss, ypred, ys[i]);
+      mseLoss = mlp_compute_mse_loss(mlp, mseLoss, ypred, ys[i]);
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }
