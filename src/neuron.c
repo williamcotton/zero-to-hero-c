@@ -2,20 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Neuron *neuron_create(int nin, int layer_id, int neuron_id) {
+Neuron *neuron_create(int nin, UNUSED int layer_id, UNUSED int neuron_id) {
   Neuron *neuron = malloc(sizeof(Neuron));
   neuron->w = malloc(sizeof(Value *) * nin);
   for (int i = 0; i < nin; i++) {
-    char *wiLabel = malloc(100 * sizeof(char));
-    sprintf(wiLabel, "w%d_%d_%d", layer_id, neuron_id, i);
     neuron->w[i] = value_create(
-        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
-        wiLabel);
+        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   }
-  char *bLabel = malloc(100 * sizeof(char));
-  sprintf(bLabel, "b%d_%d", layer_id, neuron_id);
   neuron->b = value_create(
-      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, bLabel);
+      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   neuron->nin = nin;
   neuron->out = NULL;
   return neuron;
@@ -33,6 +28,8 @@ Value *neuron_call(Neuron *neuron, Value **x) {
     act = add;
   }
   Value *out = value_tanhv(act);
+  neuron->out = value_list_append(neuron->out, out);
+
   return out;
 }
 
@@ -42,8 +39,18 @@ void neuron_free(Neuron *neuron) {
   }
   free(neuron->w);
   value_free(neuron->b);
-  value_list_free(neuron->out);
+  neuron_free_value_list(neuron);
   free(neuron);
+}
+
+void neuron_free_value_list(Neuron *neuron) {
+  ValueList *node = neuron->out;
+  while (node != NULL) {
+    ValueList *next = node->next;
+    value_free(node->value);
+    free(node);
+    node = next;
+  }
 }
 
 Value **neuron_parameters(Neuron *neuron) {

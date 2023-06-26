@@ -69,7 +69,7 @@ void nnGraph() {
 
   value_print(o, 0);
 
-  value_free(o);
+  value_free_nested(o);
 }
 
 void nn1() {
@@ -84,6 +84,9 @@ void nn1() {
   Value *result = neuron_call(neuron, x);
   value_print(result, 0);
   printf("Output: %f\n", result->data);
+  neuron_free(neuron);
+  value_free(x[0]);
+  value_free(x[1]);
 }
 
 void layer1() {
@@ -102,6 +105,8 @@ void layer1() {
   }
   free(result);
   layer_free(layer);
+  value_free(x[0]);
+  value_free(x[1]);
 }
 
 void mlp1() {
@@ -124,6 +129,7 @@ void mlp1() {
     current = current->next;
   }
   value_list_free(ypreds);
+  free_value_vector(x, 3);
   mlp_free(mlp);
 }
 
@@ -202,5 +208,5 @@ int main() {
   nn1();
   layer1();
   mlp1();
-  trainingLoop();
+  // trainingLoop();
 }

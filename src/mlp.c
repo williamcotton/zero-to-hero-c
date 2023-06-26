@@ -11,6 +11,7 @@ MLP *mlp_create(mlp_params params) {
                                   params.nouts[i], i);
   }
   mlp->nlayers = params.nlayers;
+  mlp->layerOuts = malloc(sizeof(Value **) * params.nlayers);
   return mlp;
 }
 
@@ -41,6 +42,7 @@ ValueList *mlp_call(MLP *mlp, Value **x) {
   ValueList *first = NULL, *current = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
     Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
+    mlp->layerOuts[i] = outs;
     x = layer_call(mlp->layers[i], x, outs);
     for (int j = 0; j < mlp->layers[i]->nout; j++) {
       current = value_list_append(current, outs[j]);
@@ -98,5 +100,9 @@ void mlp_free(MLP *mlp) {
     layer_free(mlp->layers[i]);
   }
   free(mlp->layers);
+  for (int i = 0; i < mlp->nlayers; i++) {
+    free(mlp->layerOuts[i]);
+  }
+  free(mlp->layerOuts);
   free(mlp);
 }

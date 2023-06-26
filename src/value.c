@@ -137,6 +137,13 @@ Value **value_create_vector(double *data, int size) {
   return values;
 }
 
+void free_value_vector(Value **values, int size) {
+  for (int i = 0; i < size; i++) {
+    value_free(values[i]);
+  }
+  free(values);
+}
+
 void value_backpropagate_graph(Value *output) {
   TopoList *topo = topolist_create(10);
   int index = 0;
@@ -152,6 +159,7 @@ void value_backpropagate_graph(Value *output) {
     v->backward(v);
   }
   topolist_free(topo);
+  hashset_free(visited);
 }
 
 void value_free_graph(Value *output) {
@@ -203,12 +211,11 @@ void value_print(Value *v, int depth) {
 }
 
 void value_list_free(ValueList *list) {
-  ValueList *next;
-  while (list) {
-    next = list->next;
-    free(list->value);
-    free(list);
-    list = next;
+  ValueList *node = list;
+  while (node != NULL) {
+    ValueList *next = node->next;
+    free(node);
+    node = next;
   }
 }
 
@@ -230,8 +237,13 @@ ValueList *value_list_append(ValueList *list, Value *value) {
 }
 
 void value_free(Value *v) {
+  free(v->children);
+  free(v);
+}
+
+void value_free_nested(Value *v) {
   for (int i = 0; i < v->num_children; i++) {
-    value_free(v->children[i]);
+    value_free_nested(v->children[i]);
   }
   free(v->children);
   free(v);
