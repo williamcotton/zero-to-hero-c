@@ -13,11 +13,11 @@ typedef struct HashSetNode {
 
 typedef struct HashSet {
   HashSetNode *buckets[HASHSET_SIZE];
+  nm_t *nm;
 } HashSet;
 
-HashSet *hashset_create();
+HashSet *hashset_create(nm_t *nm);
 void hashset_add(HashSet *set, Value *value);
 bool hashset_contains(HashSet *set, Value *value);
-void hashset_free(HashSet *set);
 
 #endif

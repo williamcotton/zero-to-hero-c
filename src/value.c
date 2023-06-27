@@ -143,20 +143,23 @@ Value *value_create(double data, char *label, nm_t *nm) {
   return result;
 }
 
-Value **value_create_vector(double *data, int size, nm_t *nm) {
+Vector *value_create_vector(double *data, int size, nm_t *nm) {
+  Vector *result = nm_malloc(nm, sizeof(Vector));
   Value **values = nm_malloc(nm, sizeof(Value *) * size);
   for (int i = 0; i < size; i++) {
     char label[10];
     snprintf(label, 10, "%f", data[i]);
     values[i] = value_create(data[i], label, nm);
   }
-  return values;
+  result->values = values;
+  result->size = size;
+  return result;
 }
 
-void value_backpropagate(Value *output) {
-  TopoList *topo = topolist_create(10);
+void value_backpropagate(Value *output, nm_t *epochNm) {
+  TopoList *topo = topolist_create(10, epochNm);
   int index = 0;
-  HashSet *visited = hashset_create();
+  HashSet *visited = hashset_create(epochNm);
   topolist_sort(output, topo, &index, visited);
 
   output->grad = 1.0;
@@ -167,8 +170,6 @@ void value_backpropagate(Value *output) {
     }
     v->backward(v);
   }
-  topolist_free(topo);
-  hashset_free(visited);
 }
 
 void value_print(Value *v, int depth) {

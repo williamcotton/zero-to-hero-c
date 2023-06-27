@@ -20,17 +20,16 @@ Neuron *neuron_create(neuron_params params) {
   return neuron;
 }
 
-Value *neuron_call(Neuron *neuron, Value **x) {
+Value *neuron_call(Neuron *neuron, Value **x, nm_t *epochNm) {
   Value *act = neuron->b;
   for (int i = 0; i < neuron->nin; i++) {
-    act = value_add(act, value_multiply(neuron->w[i], x[i], neuron->nm),
-                    neuron->nm);
+    act = value_add(act, value_multiply(neuron->w[i], x[i], epochNm), epochNm);
   }
-  return value_tanhv(act, neuron->nm);
+  return value_tanhv(act, epochNm);
 }
 
 Value **neuron_parameters(Neuron *neuron) {
-  Value **params = calloc(neuron->nin + 1, sizeof(Value *));
+  Value **params = nm_calloc(neuron->nm, neuron->nin + 1, sizeof(Value *));
   for (int i = 0; i < neuron->nin; i++) {
     params[i] = neuron->w[i];
   }

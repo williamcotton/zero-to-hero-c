@@ -19,9 +19,9 @@ Layer *layer_create(layer_params params) {
   return layer;
 }
 
-Value **layer_call(Layer *layer, Value **x, Value **outs) {
+Value **layer_call(Layer *layer, Value **x, Value **outs, nm_t *epochNm) {
   for (int i = 0; i < layer->nout; i++) {
-    outs[i] = neuron_call(layer->neurons[i], x);
+    outs[i] = neuron_call(layer->neurons[i], x, epochNm);
   }
   return outs;
 }
@@ -38,7 +38,6 @@ Value **layer_parameters(Layer *layer) {
     for (int j = 0; j < layer->nin + 1; j++) {
       params[idx++] = neuron_params[j];
     }
-    free(neuron_params);
   }
   return params;
 }

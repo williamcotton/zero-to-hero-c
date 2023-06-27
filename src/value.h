@@ -25,6 +25,11 @@ struct Value {
   double v2;
 };
 
+typedef struct Vector {
+  Value **values;
+  int size;
+} Vector;
+
 Value *value_create(double data, char *label, nm_t *nm);
 Value *value_add(Value *v1, Value *v2, nm_t *nm);
 Value *value_subtract(Value *v1, Value *v2, nm_t *nm);
@@ -34,9 +39,9 @@ Value *value_expv(Value *v, nm_t *nm);
 Value *value_tanhv(Value *v, nm_t *nm);
 Value *value_power(Value *v1, double v2, nm_t *nm);
 void value_print(Value *v, int depth);
-void value_backpropagate(Value *output);
+void value_backpropagate(Value *output, nm_t *epochNm);
 void value_free_graph(Value *output);
-Value **value_create_vector(double *data, int size, nm_t *nm);
+Vector *value_create_vector(double *data, int size, nm_t *nm);
 void value_free(Value *v);
 void value_list_free(ValueList *list);
 void free_value_vector(Value **values, int size);

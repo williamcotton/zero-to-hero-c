@@ -3,6 +3,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int mlp_nparams(MLP *mlp) {
+  int total = 0;
+  for (int i = 0; i < mlp->nlayers; i++) {
+    int layerCount = layer_nparams(mlp->layers[i]);
+    total += layerCount;
+  }
+  return total;
+}
+
+static Value **mlp_parameters(MLP *mlp) {
+  Value **params = nm_calloc(mlp->nm, mlp->paramsCount, sizeof(Value *));
+  int idx = 0;
+  for (int i = 0; i < mlp->nlayers; i++) {
+    Value **layer_params = layer_parameters(mlp->layers[i]);
+    int layerCount = layer_nparams(mlp->layers[i]);
+    for (int j = 0; j < layerCount; j++) {
+      params[idx++] = layer_params[j];
+    }
+  }
+  return params;
+}
+
 MLP *mlp_create(mlp_params params) {
   MLP *mlp = nm_malloc(params.nm, sizeof(MLP));
   mlp->nm = params.nm;
@@ -16,8 +38,6 @@ MLP *mlp_create(mlp_params params) {
     });
   }
   mlp->nlayers = params.nlayers;
-  mlp->layerOuts = nm_malloc(mlp->nm, sizeof(Value **) * params.nlayers);
-  mlp->losses = NULL;
   mlp->paramsCount = mlp_nparams(mlp);
   mlp->params = mlp_parameters(mlp);
   return mlp;
@@ -50,35 +70,12 @@ Value *mlp_call(MLP *mlp, Value **x, nm_t *epochNm) {
   Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
     Value **outs = nm_malloc(epochNm, sizeof(Value *) * mlp->layers[i]->nout);
-    x = layer_call(mlp->layers[i], x, outs);
-    mlp->layerOuts[i] = x;
+    x = layer_call(mlp->layers[i], x, outs, epochNm);
     if (i == mlp->nlayers - 1) {
-      out = outs[0];
+      out = x[0];
     }
   }
   return out;
-}
-
-int mlp_nparams(MLP *mlp) {
-  int total = 0;
-  for (int i = 0; i < mlp->nlayers; i++) {
-    int layerCount = layer_nparams(mlp->layers[i]);
-    total += layerCount;
-  }
-  return total;
-}
-
-Value **mlp_parameters(MLP *mlp) {
-  Value **params = nm_calloc(mlp->nm, mlp->paramsCount, sizeof(Value *));
-  int idx = 0;
-  for (int i = 0; i < mlp->nlayers; i++) {
-    Value **layer_params = layer_parameters(mlp->layers[i]);
-    int layerCount = layer_nparams(mlp->layers[i]);
-    for (int j = 0; j < layerCount; j++) {
-      params[idx++] = layer_params[j];
-    }
-  }
-  return params;
 }
 
 void mlp_update_parameters(MLP *mlp, double learningRate) {

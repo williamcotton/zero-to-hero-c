@@ -68,7 +68,7 @@ void nnGraph() {
   o->label = "o";
 
   // Print the values and gradients of each node
-  value_backpropagate(o);
+  value_backpropagate(o, nm);
   value_print(o, 0);
 
   nm_free(nm);
@@ -90,9 +90,11 @@ void nn1() {
       .nm = nm,
   });
   neuron_print(neuron);
-  Value *result = neuron_call(neuron, x);
+  Value *result = neuron_call(neuron, x, nm);
   value_print(result, 0);
   printf("Output: %f\n", result->data);
+
+  nm_free(nm);
 }
 
 void layer1() {
@@ -110,13 +112,14 @@ void layer1() {
       .layer_id = 0,
       .nm = nm,
   });
-  Value **outs = malloc(sizeof(Value *) * layer->nout);
-  Value **result = layer_call(layer, x, outs);
+  Value **outs = nm_malloc(nm, sizeof(Value *) * layer->nout);
+  Value **result = layer_call(layer, x, outs, nm);
   for (int i = 0; i < 3; i++) {
     printf("Output: %f\n", result[i]->data);
     value_print(result[i], 0);
   }
-  free(result);
+
+  nm_free(nm);
 }
 
 void mlp1() {
@@ -124,7 +127,7 @@ void mlp1() {
 
   nm_t *nm = nm_create();
 
-  Value **x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3, nm);
+  Vector *x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3, nm);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -134,10 +137,8 @@ void mlp1() {
   });
 
   mlp_print(mlp);
-  nm_t *epochNm = nm_create();
-  Value *ypred = mlp_call(mlp, x, epochNm);
+  Value *ypred = mlp_call(mlp, x->values, nm);
   value_print(ypred, 0);
-  nm_free(epochNm);
   nm_free(nm);
 }
 
@@ -150,12 +151,12 @@ void trainingLoop() {
 
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
-  Value ***xs = malloc(sizeof(Value **) * outputCount);
+  Vector **xs = nm_malloc(nm, sizeof(Vector *) * outputCount);
   for (int i = 0; i < outputCount; i++) {
     xs[i] = value_create_vector(xs_data[i], 3, nm);
   }
 
-  Value **ys =
+  Vector *ys =
       value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount, nm);
 
   MLP *mlp = mlp_create((mlp_params){
@@ -165,7 +166,7 @@ void trainingLoop() {
       .nm = nm,
   });
 
-  int epochsCount = 1;
+  int epochsCount = 30;
   double learningRate = 0.05;
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
@@ -174,8 +175,8 @@ void trainingLoop() {
 
     Value *mseLoss = mse_loss_create(mlp, epochNm);
     for (int i = 0; i < outputCount; i++) {
-      Value *ypred = mlp_call(mlp, xs[i], epochNm);
-      mseLoss = mse_loss_call(mlp, mseLoss, ypred, ys[i], epochNm);
+      Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
+      mseLoss = mse_loss_call(mlp, mseLoss, ypred, ys->values[i], epochNm);
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }
@@ -183,7 +184,7 @@ void trainingLoop() {
 
     // backward pass
     mlp_zero_grad(mlp);
-    value_backpropagate(mseLoss);
+    value_backpropagate(mseLoss, epochNm);
 
     // update parameters
     mlp_update_parameters(mlp, learningRate);
@@ -192,8 +193,7 @@ void trainingLoop() {
 
     nm_free(epochNm);
   }
-  // after loop
-  free(xs);
+
   nm_free(nm);
 }
 

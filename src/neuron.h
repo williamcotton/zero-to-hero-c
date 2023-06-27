@@ -20,7 +20,7 @@ typedef struct neuron_params {
 } neuron_params;
 
 Neuron *neuron_create(neuron_params params);
-Value *neuron_call(Neuron *neuron, Value **x);
+Value *neuron_call(Neuron *neuron, Value **x, nm_t *epochNm);
 Value **neuron_parameters(Neuron *neuron);
 void neuron_print(Neuron *neuron);
 

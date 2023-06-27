@@ -20,7 +20,7 @@ typedef struct layer_params {
 } layer_params;
 
 Layer *layer_create(layer_params params);
-Value **layer_call(Layer *layer, Value **x, Value **outs);
+Value **layer_call(Layer *layer, Value **x, Value **outs, nm_t *epochNm);
 Value **layer_parameters(Layer *layer);
 int layer_nparams(Layer *layer);
 
