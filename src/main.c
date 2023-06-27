@@ -152,9 +152,9 @@ void trainingLoop() {
 
   int outputCount = 4;
 
+  Vector **xs = nm_malloc(nm, sizeof(Vector *) * outputCount);
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
-  Vector **xs = nm_malloc(nm, sizeof(Vector *) * outputCount);
   for (int i = 0; i < outputCount; i++) {
     xs[i] = value_create_vector(xs_data[i], 3, nm);
   }
