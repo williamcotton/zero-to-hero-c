@@ -80,7 +80,14 @@ void nn1() {
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
 
-  Neuron *neuron = neuron_create(2, 0, 0);
+  nm_t *nm = nm_create();
+
+  Neuron *neuron = neuron_create((neuron_params){
+      .nin = 2,
+      .layer_id = 0,
+      .neuron_id = 0,
+      .nm = nm,
+  });
   neuron_print(neuron);
   Value *result = neuron_call(neuron, x);
   value_print(result, 0);

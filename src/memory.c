@@ -47,7 +47,6 @@ void *nm_realloc(nm_t *nm, void *ptr, size_t size) {
 }
 
 void *nm_calloc(nm_t *nm, size_t num, size_t size) {
-  printf("nm_calloc: num=%zu, size=%zu\n", num, size);
   void *ptr = nm_malloc(nm, num * size);
   return ptr;
 }

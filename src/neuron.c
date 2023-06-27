@@ -1,17 +1,19 @@
 #include "neuron.h"
+#include "memory.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-Neuron *neuron_create(int nin, UNUSED int layer_id, UNUSED int neuron_id) {
-  Neuron *neuron = malloc(sizeof(Neuron));
-  neuron->w = malloc(sizeof(Value *) * nin);
-  for (int i = 0; i < nin; i++) {
+Neuron *neuron_create(neuron_params params) {
+  Neuron *neuron = nm_malloc(params.nm, sizeof(Neuron));
+  neuron->nm = params.nm;
+  neuron->w = nm_malloc(neuron->nm, sizeof(Value *) * params.nin);
+  for (int i = 0; i < params.nin; i++) {
     neuron->w[i] = value_create(
         (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
   }
   neuron->b = value_create(
       (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
-  neuron->nin = nin;
+  neuron->nin = params.nin;
   neuron->out = NULL;
   return neuron;
 }
@@ -37,10 +39,8 @@ void neuron_free(Neuron *neuron) {
   for (int i = 0; i < neuron->nin; i++) {
     value_free(neuron->w[i]);
   }
-  free(neuron->w);
   value_free(neuron->b);
   neuron_free_value_list(neuron);
-  free(neuron);
 }
 
 void neuron_free_value_list(Neuron *neuron) {

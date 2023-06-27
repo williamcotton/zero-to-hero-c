@@ -117,7 +117,6 @@ void mlp_free_loss_functions(MLP *mlp) {
   while (curr != NULL) {
     ValueList *next = curr->next;
     value_free(curr->value);
-    // free(curr);
     curr = next;
   }
   mlp->losses = NULL;

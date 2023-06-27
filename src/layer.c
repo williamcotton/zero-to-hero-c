@@ -7,7 +7,12 @@ Layer *layer_create(layer_params params) {
   layer->nm = params.nm;
   layer->neurons = nm_malloc(params.nm, sizeof(Neuron *) * params.nout);
   for (int i = 0; i < params.nout; i++) {
-    layer->neurons[i] = neuron_create(params.nin, params.layer_id, i);
+    layer->neurons[i] = neuron_create((neuron_params){
+        .nin = params.nin,
+        .layer_id = params.layer_id,
+        .neuron_id = i,
+        .nm = params.nm,
+    });
   }
   layer->nin = params.nin;
   layer->nout = params.nout;
