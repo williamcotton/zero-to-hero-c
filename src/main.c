@@ -1,3 +1,4 @@
+#include "memory.h"
 #include "mlp.h"
 #include "plot.h"
 #include "value.h"
@@ -164,21 +165,14 @@ void trainingLoop() {
     }
 
     // backward pass
-    Value **params = mlp_parameters(mlp);
-    int paramsCount = mlp_nparams(mlp);
-    for (int i = 0; i < paramsCount; i++) {
-      params[i]->grad = 0.0;
-    }
+    mlp_zero_grad(mlp);
     value_backpropagate_graph(mseLoss);
 
     // update parameters
-    for (int i = 0; i < paramsCount; i++) {
-      params[i]->data += -learningRate * params[i]->grad;
-    }
+    mlp_update_parameters(mlp, learningRate);
 
     printf("%d %.15lf\n", epoch, mseLoss->data);
 
-    free(params);
     mlp_free_loss_functions(mlp);
   }
   // after loop
@@ -193,6 +187,7 @@ void trainingLoop() {
 }
 
 int main() {
+
   plot(tanhf, "images/tanhf.png");
   plot(quadratic, "images/quadratic.png");
   nnGraph();

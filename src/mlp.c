@@ -13,6 +13,8 @@ MLP *mlp_create(mlp_params params) {
   mlp->nlayers = params.nlayers;
   mlp->layerOuts = malloc(sizeof(Value **) * params.nlayers);
   mlp->losses = NULL;
+  mlp->params = mlp_parameters(mlp);
+  mlp->paramsCount = mlp_nparams(mlp);
   return mlp;
 }
 
@@ -82,6 +84,18 @@ Value **mlp_parameters(MLP *mlp) {
   return params;
 }
 
+void mlp_update_parameters(MLP *mlp, double learningRate) {
+  for (int i = 0; i < mlp->paramsCount; i++) {
+    mlp->params[i]->data += -learningRate * mlp->params[i]->grad;
+  }
+}
+
+void mlp_zero_grad(MLP *mlp) {
+  for (int i = 0; i < mlp->paramsCount; i++) {
+    mlp->params[i]->grad = 0.0;
+  }
+}
+
 void mlp_add_loss_function(MLP *mlp, Value *loss) {
   ValueList *node = malloc(sizeof(ValueList));
   node->value = loss;
@@ -133,6 +147,7 @@ void mlp_free(MLP *mlp) {
   }
   free(mlp->layers);
   free(mlp->layerOuts);
+  free(mlp->params);
   mlp_free_loss_functions(mlp);
   free(mlp);
 }
