@@ -23,6 +23,5 @@ Layer *layer_create(layer_params params);
 Value **layer_call(Layer *layer, Value **x, Value **outs);
 Value **layer_parameters(Layer *layer);
 int layer_nparams(Layer *layer);
-void layer_free(Layer *layer);
 
 #endif

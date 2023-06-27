@@ -9,10 +9,12 @@ Neuron *neuron_create(neuron_params params) {
   neuron->w = nm_malloc(neuron->nm, sizeof(Value *) * params.nin);
   for (int i = 0; i < params.nin; i++) {
     neuron->w[i] = value_create(
-        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
+        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL,
+        neuron->nm);
   }
   neuron->b = value_create(
-      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL);
+      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL,
+      neuron->nm);
   neuron->nin = params.nin;
   neuron->out = NULL;
   return neuron;
@@ -21,36 +23,10 @@ Neuron *neuron_create(neuron_params params) {
 Value *neuron_call(Neuron *neuron, Value **x) {
   Value *act = neuron->b;
   for (int i = 0; i < neuron->nin; i++) {
-    Value *mul = value_multiply(neuron->w[i], x[i]);
-    Value *add = value_add(act, mul);
-
-    neuron->out = value_list_append(neuron->out, mul);
-    neuron->out = value_list_append(neuron->out, add);
-
-    act = add;
+    act = value_add(act, value_multiply(neuron->w[i], x[i], neuron->nm),
+                    neuron->nm);
   }
-  Value *out = value_tanhv(act);
-  neuron->out = value_list_append(neuron->out, out);
-
-  return out;
-}
-
-void neuron_free(Neuron *neuron) {
-  for (int i = 0; i < neuron->nin; i++) {
-    value_free(neuron->w[i]);
-  }
-  value_free(neuron->b);
-  neuron_free_value_list(neuron);
-}
-
-void neuron_free_value_list(Neuron *neuron) {
-  ValueList *node = neuron->out;
-  while (node != NULL) {
-    ValueList *next = node->next;
-    value_free(node->value);
-    free(node);
-    node = next;
-  }
+  return value_tanhv(act, neuron->nm);
 }
 
 Value **neuron_parameters(Neuron *neuron) {

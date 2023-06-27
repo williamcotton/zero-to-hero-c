@@ -23,7 +23,5 @@ Neuron *neuron_create(neuron_params params);
 Value *neuron_call(Neuron *neuron, Value **x);
 Value **neuron_parameters(Neuron *neuron);
 void neuron_print(Neuron *neuron);
-void neuron_free(Neuron *neuron);
-void neuron_free_value_list(Neuron *neuron);
 
 #endif

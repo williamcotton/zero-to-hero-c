@@ -42,9 +42,3 @@ Value **layer_parameters(Layer *layer) {
   }
   return params;
 }
-
-void layer_free(Layer *layer) {
-  for (int i = 0; i < layer->nout; i++) {
-    neuron_free(layer->neurons[i]);
-  }
-}

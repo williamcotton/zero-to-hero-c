@@ -18,8 +18,8 @@ MLP *mlp_create(mlp_params params) {
   mlp->nlayers = params.nlayers;
   mlp->layerOuts = nm_malloc(mlp->nm, sizeof(Value **) * params.nlayers);
   mlp->losses = NULL;
-  mlp->params = mlp_parameters(mlp);
   mlp->paramsCount = mlp_nparams(mlp);
+  mlp->params = mlp_parameters(mlp);
   return mlp;
 }
 
@@ -34,7 +34,7 @@ void mlp_print(MLP *mlp) {
   }
 }
 
-Value *mlp_call(MLP *mlp, Value **x) {
+Value *mlp_call(MLP *mlp, Value **x, nm_t *epochNm) {
   if (mlp->nlayers == 0) {
     printf("Error: MLP has no layers\n");
     return NULL;
@@ -49,8 +49,7 @@ Value *mlp_call(MLP *mlp, Value **x) {
   }
   Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
-    Value **outs =
-        nm_malloc(mlp->epochNm, sizeof(Value *) * mlp->layers[i]->nout);
+    Value **outs = nm_malloc(epochNm, sizeof(Value *) * mlp->layers[i]->nout);
     x = layer_call(mlp->layers[i], x, outs);
     mlp->layerOuts[i] = x;
     if (i == mlp->nlayers - 1) {
@@ -70,11 +69,7 @@ int mlp_nparams(MLP *mlp) {
 }
 
 Value **mlp_parameters(MLP *mlp) {
-  int paramCount = mlp_nparams(mlp);
-  if (paramCount == 0) {
-    return NULL;
-  }
-  Value **params = nm_calloc(mlp->nm, paramCount, sizeof(Value *));
+  Value **params = nm_calloc(mlp->nm, mlp->paramsCount, sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < mlp->nlayers; i++) {
     Value **layer_params = layer_parameters(mlp->layers[i]);
@@ -96,55 +91,4 @@ void mlp_zero_grad(MLP *mlp) {
   for (int i = 0; i < mlp->paramsCount; i++) {
     mlp->params[i]->grad = 0.0;
   }
-}
-
-void mlp_add_loss_function(MLP *mlp, Value *loss) {
-  ValueList *node = nm_malloc(mlp->epochNm, sizeof(ValueList));
-  node->value = loss;
-  node->next = NULL;
-  if (mlp->losses == NULL) {
-    mlp->losses = node;
-  } else {
-    ValueList *curr = mlp->losses;
-    while (curr->next != NULL) {
-      curr = curr->next;
-    }
-    curr->next = node;
-  }
-}
-
-void mlp_free_loss_functions(MLP *mlp) {
-  ValueList *curr = mlp->losses;
-  while (curr != NULL) {
-    ValueList *next = curr->next;
-    value_free(curr->value);
-    curr = next;
-  }
-  mlp->losses = NULL;
-}
-
-Value *mlp_compute_mse_loss(MLP *mlp, Value *mseLoss, Value *ypred, Value *ys) {
-  Value *diff = value_subtract(ypred, ys);
-  mlp_add_loss_function(mlp, diff);
-
-  Value *loss = value_power(diff, 2);
-  mlp_add_loss_function(mlp, loss);
-
-  Value *add = value_add(mseLoss, loss);
-  mlp_add_loss_function(mlp, add);
-
-  return add;
-}
-
-Value *mlp_create_mse_loss(MLP *mlp) {
-  Value *mseLoss = value_create(0.0, "mse_loss");
-  mlp_add_loss_function(mlp, mseLoss);
-  return mseLoss;
-}
-
-void mlp_free(MLP *mlp) {
-  for (int i = 0; i < mlp->nlayers; i++) {
-    layer_free(mlp->layers[i]);
-  }
-  mlp_free_loss_functions(mlp);
 }

@@ -1,5 +1,6 @@
 #include "memory.h"
 #include "mlp.h"
+#include "mse_loss.h"
 #include "plot.h"
 #include "value.h"
 #include <math.h>
@@ -44,43 +45,43 @@ void plot(float (*f)(float), char *filename) {
 void nnGraph() {
   print_banner("nnGraph");
 
+  nm_t *nm = nm_create();
+
   // inputs x1,x2
-  Value *x1 = value_create(2.0, "x1");
-  Value *x2 = value_create(0.0, "x2");
+  Value *x1 = value_create(2.0, "x1", nm);
+  Value *x2 = value_create(0.0, "x2", nm);
   // weights w1,w2
-  Value *w1 = value_create(-3.0, "w1");
-  Value *w2 = value_create(1.0, "w2");
+  Value *w1 = value_create(-3.0, "w1", nm);
+  Value *w2 = value_create(1.0, "w2", nm);
   // bias of the neuron
-  Value *b = value_create(6.8813735870195432, "b");
+  Value *b = value_create(6.8813735870195432, "b", nm);
   // x1*w1 + x2*w2 + b
-  Value *x1w1 = value_multiply(x1, w1);
+  Value *x1w1 = value_multiply(x1, w1, nm);
   x1w1->label = "x1*w1";
-  Value *x2w2 = value_multiply(x2, w2);
+  Value *x2w2 = value_multiply(x2, w2, nm);
   x2w2->label = "x2*w2";
-  Value *x1w1x2w2 = value_add(x1w1, x2w2);
+  Value *x1w1x2w2 = value_add(x1w1, x2w2, nm);
   x1w1x2w2->label = "x1*w1 + x2*w2";
-  Value *n = value_add(x1w1x2w2, b);
+  Value *n = value_add(x1w1x2w2, b, nm);
   n->label = "n";
-  Value *o = value_tanhv(n);
+  Value *o = value_tanhv(n, nm);
   o->label = "o";
 
   // Print the values and gradients of each node
-
-  value_backpropagate_graph(o);
-
+  value_backpropagate(o);
   value_print(o, 0);
 
-  value_free_nested(o);
+  nm_free(nm);
 }
 
 void nn1() {
   print_banner("nn1");
 
-  Value *x[2];
-  x[0] = value_create(2.0, "x0");
-  x[1] = value_create(3.0, "x1");
-
   nm_t *nm = nm_create();
+
+  Value *x[2];
+  x[0] = value_create(2.0, "x0", nm);
+  x[1] = value_create(3.0, "x1", nm);
 
   Neuron *neuron = neuron_create((neuron_params){
       .nin = 2,
@@ -92,19 +93,16 @@ void nn1() {
   Value *result = neuron_call(neuron, x);
   value_print(result, 0);
   printf("Output: %f\n", result->data);
-  neuron_free(neuron);
-  value_free(x[0]);
-  value_free(x[1]);
 }
 
 void layer1() {
   print_banner("layer1");
 
-  Value *x[2];
-  x[0] = value_create(2.0, "x0");
-  x[1] = value_create(3.0, "x1");
-
   nm_t *nm = nm_create();
+
+  Value *x[2];
+  x[0] = value_create(2.0, "x0", nm);
+  x[1] = value_create(3.0, "x1", nm);
 
   Layer *layer = layer_create((layer_params){
       .nin = 2,
@@ -119,17 +117,14 @@ void layer1() {
     value_print(result[i], 0);
   }
   free(result);
-  layer_free(layer);
-  value_free(x[0]);
-  value_free(x[1]);
 }
 
 void mlp1() {
   print_banner("mlp1");
 
-  Value **x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3);
-
   nm_t *nm = nm_create();
+
+  Value **x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3, nm);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -139,17 +134,17 @@ void mlp1() {
   });
 
   mlp_print(mlp);
-  mlp->epochNm = nm_create();
-  Value *ypred = mlp_call(mlp, x);
+  nm_t *epochNm = nm_create();
+  Value *ypred = mlp_call(mlp, x, epochNm);
   value_print(ypred, 0);
-  free_value_vector(x, 3);
-  nm_free(mlp->epochNm);
-  mlp_free(mlp);
+  nm_free(epochNm);
   nm_free(nm);
 }
 
 void trainingLoop() {
   print_banner("trainingLoop");
+
+  nm_t *nm = nm_create();
 
   int outputCount = 4;
 
@@ -157,13 +152,11 @@ void trainingLoop() {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
   Value ***xs = malloc(sizeof(Value **) * outputCount);
   for (int i = 0; i < outputCount; i++) {
-    xs[i] = value_create_vector(xs_data[i], 3);
+    xs[i] = value_create_vector(xs_data[i], 3, nm);
   }
 
   Value **ys =
-      value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount);
-
-  nm_t *nm = nm_create();
+      value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount, nm);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -177,12 +170,12 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
-    mlp->epochNm = nm_create();
+    nm_t *epochNm = nm_create();
 
-    Value *mseLoss = mlp_create_mse_loss(mlp);
+    Value *mseLoss = mse_loss_create(mlp, epochNm);
     for (int i = 0; i < outputCount; i++) {
-      Value *ypred = mlp_call(mlp, xs[i]);
-      mseLoss = mlp_compute_mse_loss(mlp, mseLoss, ypred, ys[i]);
+      Value *ypred = mlp_call(mlp, xs[i], epochNm);
+      mseLoss = mse_loss_call(mlp, mseLoss, ypred, ys[i], epochNm);
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }
@@ -190,23 +183,16 @@ void trainingLoop() {
 
     // backward pass
     mlp_zero_grad(mlp);
-    value_backpropagate_graph(mseLoss);
+    value_backpropagate(mseLoss);
 
     // update parameters
     mlp_update_parameters(mlp, learningRate);
 
     printf("%d %.15lf\n", epoch, mseLoss->data);
 
-    mlp_free_loss_functions(mlp);
-
-    nm_free(mlp->epochNm);
+    nm_free(epochNm);
   }
   // after loop
-  mlp_free(mlp);
-  free_value_vector(ys, 4);
-  for (int i = 0; i < outputCount; i++) {
-    free_value_vector(xs[i], 3);
-  }
   free(xs);
   nm_free(nm);
 }
