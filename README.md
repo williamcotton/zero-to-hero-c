@@ -49,7 +49,7 @@ for (int i = 0; i < outputCount; i++) {
   xs[i] = value_create_vector(xs_data[i], 3, nm);
 }
 
-Vector *ys =
+Vector *labels =
     value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount, nm);
 ```
 
@@ -83,20 +83,21 @@ int epochsCount = 30;
 double learningRate = 0.05;
 
 for (int epoch = 0; epoch < epochsCount; epoch++) {
-  // forward pass
+  // allocate memory for this epoch
   nm_t *epochNm = nm_create(ONE_K * 48);
+
+  // zero gradients
+  mlp_zero_grad(mlp);
 
   Value *mseLoss = mse_loss_create(epochNm);
   for (int i = 0; i < outputCount; i++) {
+    // forward pass: compute predictions.
     Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
-    mseLoss = mse_loss_call(mseLoss, ypred, ys->values[i], epochNm);
-    if (epoch == epochsCount - 1) {
-      printf("ypred[%d]: %.15lf\n", i, ypred->data);
-    }
+    // compute the loss between predicted and actual outputs.
+    mseLoss = mse_loss_call(mseLoss, ypred, labels->values[i], epochNm);
   }
 
-  // backward pass
-  mlp_zero_grad(mlp);
+  // backward pass: compute gradients
   value_backpropagate(mseLoss, epochNm);
 
   // update parameters
@@ -104,8 +105,62 @@ for (int epoch = 0; epoch < epochsCount; epoch++) {
 
   printf("%d %.15lf\n", epoch, mseLoss->data);
 
+  // free up memory allocated for this epoch
   nm_free(epochNm);
 }
+```
+
+```
+0 3.966426927180447
+1 1.144221241119086
+2 0.250991585143562
+3 0.145240398148280
+4 0.110849584353571
+5 0.089521658917332
+6 0.074988933486754
+7 0.064450266589119
+8 0.056460534571060
+9 0.050197298588184
+10 0.045157620789270
+11 0.041016519858547
+12 0.037554622898648
+13 0.034618484731589
+14 0.032097557023110
+15 0.029910184369499
+16 0.027994750695870
+17 0.026303892996787
+18 0.024800610043536
+19 0.023455579446219
+20 0.022245266857354
+21 0.021150567288292
+22 0.020155811698256
+23 0.019248029237300
+24 0.018416391572452
+25 0.017651788963903
+26 0.016946503052080
+27 0.016293951573875
+28 0.015688487225180
+29 0.015125237738147
+```
+
+### Using the model
+
+This code block uses the trained model to predict the output for the xs input vector.
+
+```c
+nm_t *predictNm = nm_create(ONE_K * 32);
+for (int i = 0; i < outputCount; i++) {
+  Value *ypred = mlp_call(mlp, xs[i]->values, predictNm);
+  printf("ypred[%d]: %.15lf\n", i, ypred->data);
+}
+nm_free(predictNm);
+```
+
+```
+ypred[0]: 0.945968518530008
+ypred[1]: -0.934020155390521
+ypred[2]: -0.924436215300003
+ypred[3]: 0.959783694717388
 ```
 
 ### Freeing up the memory

@@ -148,19 +148,21 @@ void mlp1() {
 void trainingLoop() {
   print_banner("trainingLoop");
 
-  nm_t *nm = nm_create(ONE_K * 16);
+  nm_t *trainingNm = nm_create(ONE_K * 2);
 
   int outputCount = 4;
 
-  Vector **xs = nm_malloc(nm, sizeof(Vector *) * outputCount);
+  Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * outputCount);
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
   for (int i = 0; i < outputCount; i++) {
-    xs[i] = value_create_vector(xs_data[i], 3, nm);
+    xs[i] = value_create_vector(xs_data[i], 3, trainingNm);
   }
 
-  Vector *ys =
-      value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount, nm);
+  Vector *labels = value_create_vector((double[]){1.0, -1.0, -1.0, 1.0},
+                                       outputCount, trainingNm);
+
+  nm_t *nm = nm_create(ONE_K * 16);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -173,20 +175,21 @@ void trainingLoop() {
   double learningRate = 0.05;
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
-    // forward pass
+    // allocate memory for this epoch
     nm_t *epochNm = nm_create(ONE_K * 48);
+
+    // zero gradients
+    mlp_zero_grad(mlp);
 
     Value *mseLoss = mse_loss_create(epochNm);
     for (int i = 0; i < outputCount; i++) {
+      // forward pass: compute predictions.
       Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
-      mseLoss = mse_loss_call(mseLoss, ypred, ys->values[i], epochNm);
-      if (epoch == epochsCount - 1) {
-        printf("ypred[%d]: %.15lf\n", i, ypred->data);
-      }
+      // compute the loss between predicted and actual outputs.
+      mseLoss = mse_loss_call(mseLoss, ypred, labels->values[i], epochNm);
     }
 
-    // backward pass
-    mlp_zero_grad(mlp);
+    // backward pass: compute gradients
     value_backpropagate(mseLoss, epochNm);
 
     // update parameters
@@ -194,9 +197,17 @@ void trainingLoop() {
 
     printf("%d %.15lf\n", epoch, mseLoss->data);
 
+    // free up memory allocated for this epoch
     nm_free(epochNm);
   }
 
+  nm_t *predictNm = nm_create(ONE_K * 32);
+  for (int i = 0; i < outputCount; i++) {
+    Value *ypred = mlp_call(mlp, xs[i]->values, predictNm);
+    printf("ypred[%d]: %.15lf\n", i, ypred->data);
+  }
+  nm_free(predictNm);
+  nm_free(trainingNm);
   nm_free(nm);
 }
 
