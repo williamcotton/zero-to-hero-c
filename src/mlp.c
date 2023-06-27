@@ -4,14 +4,19 @@
 #include <stdlib.h>
 
 MLP *mlp_create(mlp_params params) {
-  MLP *mlp = malloc(sizeof(MLP));
-  mlp->layers = malloc(sizeof(Layer *) * params.nlayers);
+  MLP *mlp = nm_malloc(params.nm, sizeof(MLP));
+  mlp->nm = params.nm;
+  mlp->layers = nm_malloc(mlp->nm, sizeof(Layer *) * params.nlayers);
   for (int i = 0; i < params.nlayers; i++) {
-    mlp->layers[i] = layer_create(i == 0 ? params.nin : params.nouts[i - 1],
-                                  params.nouts[i], i);
+    mlp->layers[i] = layer_create((layer_params){
+        .nin = i == 0 ? params.nin : params.nouts[i - 1],
+        .nout = params.nouts[i],
+        .layer_id = i,
+        .nm = mlp->nm,
+    });
   }
   mlp->nlayers = params.nlayers;
-  mlp->layerOuts = malloc(sizeof(Value **) * params.nlayers);
+  mlp->layerOuts = nm_malloc(mlp->nm, sizeof(Value **) * params.nlayers);
   mlp->losses = NULL;
   mlp->params = mlp_parameters(mlp);
   mlp->paramsCount = mlp_nparams(mlp);
@@ -44,15 +49,12 @@ Value *mlp_call(MLP *mlp, Value **x) {
   }
   Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
-    Value **outs = malloc(sizeof(Value *) * mlp->layers[i]->nout);
+    Value **outs = nm_malloc(mlp->nm, sizeof(Value *) * mlp->layers[i]->nout);
     x = layer_call(mlp->layers[i], x, outs);
     mlp->layerOuts[i] = x;
     if (i == mlp->nlayers - 1) {
       out = outs[0];
     }
-  }
-  for (int i = 0; i < mlp->nlayers; i++) {
-    free(mlp->layerOuts[i]);
   }
   return out;
 }
@@ -71,7 +73,7 @@ Value **mlp_parameters(MLP *mlp) {
   if (paramCount == 0) {
     return NULL;
   }
-  Value **params = calloc(paramCount, sizeof(Value *));
+  Value **params = nm_calloc(mlp->nm, paramCount, sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < mlp->nlayers; i++) {
     Value **layer_params = layer_parameters(mlp->layers[i]);
@@ -79,7 +81,6 @@ Value **mlp_parameters(MLP *mlp) {
     for (int j = 0; j < layerCount; j++) {
       params[idx++] = layer_params[j];
     }
-    free(layer_params);
   }
   return params;
 }
@@ -97,7 +98,7 @@ void mlp_zero_grad(MLP *mlp) {
 }
 
 void mlp_add_loss_function(MLP *mlp, Value *loss) {
-  ValueList *node = malloc(sizeof(ValueList));
+  ValueList *node = nm_malloc(mlp->nm, sizeof(ValueList));
   node->value = loss;
   node->next = NULL;
   if (mlp->losses == NULL) {
@@ -116,7 +117,7 @@ void mlp_free_loss_functions(MLP *mlp) {
   while (curr != NULL) {
     ValueList *next = curr->next;
     value_free(curr->value);
-    free(curr);
+    // free(curr);
     curr = next;
   }
   mlp->losses = NULL;
@@ -145,9 +146,5 @@ void mlp_free(MLP *mlp) {
   for (int i = 0; i < mlp->nlayers; i++) {
     layer_free(mlp->layers[i]);
   }
-  free(mlp->layers);
-  free(mlp->layerOuts);
-  free(mlp->params);
   mlp_free_loss_functions(mlp);
-  free(mlp);
 }

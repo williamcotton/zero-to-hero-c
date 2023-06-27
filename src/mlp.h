@@ -20,6 +20,7 @@ typedef struct mlp_params {
   int nin;
   int *nouts;
   int nlayers;
+  nm_t *nm;
 } mlp_params;
 
 MLP *mlp_create(mlp_params params);

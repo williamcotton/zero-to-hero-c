@@ -97,7 +97,14 @@ void layer1() {
   x[0] = value_create(2.0, "x0");
   x[1] = value_create(3.0, "x1");
 
-  Layer *layer = layer_create(2, 3, 0);
+  nm_t *nm = nm_create();
+
+  Layer *layer = layer_create((layer_params){
+      .nin = 2,
+      .nout = 3,
+      .layer_id = 0,
+      .nm = nm,
+  });
   Value **outs = malloc(sizeof(Value *) * layer->nout);
   Value **result = layer_call(layer, x, outs);
   for (int i = 0; i < 3; i++) {
@@ -115,10 +122,13 @@ void mlp1() {
 
   Value **x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3);
 
+  nm_t *nm = nm_create();
+
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
       .nouts = (int[]){4, 4, 1},
       .nlayers = 3,
+      .nm = nm,
   });
 
   mlp_print(mlp);
@@ -127,6 +137,7 @@ void mlp1() {
   value_print(ypred, 0);
   free_value_vector(x, 3);
   mlp_free(mlp);
+  nm_free(nm);
 }
 
 void trainingLoop() {
@@ -144,13 +155,16 @@ void trainingLoop() {
   Value **ys =
       value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount);
 
+  nm_t *nm = nm_create();
+
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
       .nouts = (int[]){4, 4, 1},
       .nlayers = 3,
+      .nm = nm,
   });
 
-  int epochsCount = 30;
+  int epochsCount = 1;
   double learningRate = 0.05;
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
@@ -176,14 +190,13 @@ void trainingLoop() {
     mlp_free_loss_functions(mlp);
   }
   // after loop
-
   mlp_free(mlp);
-
   free_value_vector(ys, 4);
   for (int i = 0; i < outputCount; i++) {
     free_value_vector(xs[i], 3);
   }
   free(xs);
+  nm_free(nm);
 }
 
 int main() {

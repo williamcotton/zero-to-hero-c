@@ -2,14 +2,15 @@
 #include "neuron.h"
 #include <stdlib.h>
 
-Layer *layer_create(int nin, int nout, int layer_id) {
-  Layer *layer = malloc(sizeof(Layer));
-  layer->neurons = malloc(sizeof(Neuron *) * nout);
-  for (int i = 0; i < nout; i++) {
-    layer->neurons[i] = neuron_create(nin, layer_id, i);
+Layer *layer_create(layer_params params) {
+  Layer *layer = nm_malloc(params.nm, sizeof(Layer));
+  layer->nm = params.nm;
+  layer->neurons = nm_malloc(params.nm, sizeof(Neuron *) * params.nout);
+  for (int i = 0; i < params.nout; i++) {
+    layer->neurons[i] = neuron_create(params.nin, params.layer_id, i);
   }
-  layer->nin = nin;
-  layer->nout = nout;
+  layer->nin = params.nin;
+  layer->nout = params.nout;
   return layer;
 }
 
@@ -25,7 +26,7 @@ int layer_nparams(Layer *layer) {
 }
 
 Value **layer_parameters(Layer *layer) {
-  Value **params = calloc(layer_nparams(layer), sizeof(Value *));
+  Value **params = nm_calloc(layer->nm, layer_nparams(layer), sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < layer->nout; i++) {
     Value **neuron_params = neuron_parameters(layer->neurons[i]);
@@ -41,6 +42,4 @@ void layer_free(Layer *layer) {
   for (int i = 0; i < layer->nout; i++) {
     neuron_free(layer->neurons[i]);
   }
-  free(layer->neurons);
-  free(layer);
 }
