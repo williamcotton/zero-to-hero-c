@@ -34,6 +34,10 @@ void hashset_add(HashSet *set, Value *value) {
     node = node->next;
   }
   node = nm_malloc(set->nm, sizeof(HashSetNode));
+  if (node == NULL) {
+    printf("Failed to allocate memory for HashSetNode\n");
+    exit(1);
+  }
   node->value = value;
   node->next = set->buckets[index];
   set->buckets[index] = node;

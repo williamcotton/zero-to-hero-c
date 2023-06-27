@@ -40,12 +40,7 @@ Value *value_tanhv(Value *v, nm_t *nm);
 Value *value_power(Value *v1, double v2, nm_t *nm);
 void value_print(Value *v, int depth);
 void value_backpropagate(Value *output, nm_t *epochNm);
-void value_free_graph(Value *output);
 Vector *value_create_vector(double *data, int size, nm_t *nm);
-void value_free(Value *v);
-void value_list_free(ValueList *list);
-void free_value_vector(Value **values, int size);
 void value_print_nested(Value *v, int depth);
-ValueList *value_list_append(ValueList *list, Value *value);
 
 #endif

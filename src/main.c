@@ -12,6 +12,9 @@ float quadratic(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
 
 #define NUM_POINTS 40
 
+#define ONE_MEG (1024 * 1024)
+#define ONE_K (1024)
+
 void print_banner(const char *title) {
   int len = strlen(title);
   int total_len = len + 6; // 3 characters padding on each side
@@ -45,7 +48,7 @@ void plot(float (*f)(float), char *filename) {
 void nnGraph() {
   print_banner("nnGraph");
 
-  nm_t *nm = nm_create();
+  nm_t *nm = nm_create(ONE_MEG);
 
   // inputs x1,x2
   Value *x1 = value_create(2.0, "x1", nm);
@@ -77,7 +80,7 @@ void nnGraph() {
 void nn1() {
   print_banner("nn1");
 
-  nm_t *nm = nm_create();
+  nm_t *nm = nm_create(ONE_MEG);
 
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
@@ -100,7 +103,7 @@ void nn1() {
 void layer1() {
   print_banner("layer1");
 
-  nm_t *nm = nm_create();
+  nm_t *nm = nm_create(ONE_MEG);
 
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
@@ -125,7 +128,7 @@ void layer1() {
 void mlp1() {
   print_banner("mlp1");
 
-  nm_t *nm = nm_create();
+  nm_t *nm = nm_create(ONE_K * 16);
 
   Vector *x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3, nm);
 
@@ -145,7 +148,7 @@ void mlp1() {
 void trainingLoop() {
   print_banner("trainingLoop");
 
-  nm_t *nm = nm_create();
+  nm_t *nm = nm_create(ONE_K * 16);
 
   int outputCount = 4;
 
@@ -171,12 +174,12 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
-    nm_t *epochNm = nm_create();
+    nm_t *epochNm = nm_create(ONE_K * 48);
 
-    Value *mseLoss = mse_loss_create(mlp, epochNm);
+    Value *mseLoss = mse_loss_create(epochNm);
     for (int i = 0; i < outputCount; i++) {
       Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
-      mseLoss = mse_loss_call(mlp, mseLoss, ypred, ys->values[i], epochNm);
+      mseLoss = mse_loss_call(mseLoss, ypred, ys->values[i], epochNm);
       if (epoch == epochsCount - 1) {
         printf("ypred[%d]: %.15lf\n", i, ypred->data);
       }

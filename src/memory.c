@@ -32,6 +32,7 @@ void *nm_malloc(nm_t *nm, size_t size) {
   char *ptr = (char *)nm->freePtr;
   nm->freePtr = (void *)(ptr + roundTo8(size));
   if (nm->freePtr > nm->endPtr) {
+    printf("Out of memory\n");
     return NULL;
   }
   memset(ptr, 0, size);
@@ -52,17 +53,17 @@ void *nm_calloc(nm_t *nm, size_t num, size_t size) {
 }
 
 void nm_free(nm_t *nm) {
-  munmap(nm->startPtr, HEAP_SIZE);
+  munmap(nm->startPtr, nm->size);
   free(nm);
 }
 
-nm_t *nm_create() {
+nm_t *nm_create(size_t size) {
   nm_t *nm = malloc(sizeof(nm_t));
-
-  nm->freePtr = mmap(NULL, HEAP_SIZE, PROT_READ | PROT_WRITE,
+  nm->size = size;
+  nm->freePtr = mmap(NULL, size, PROT_READ | PROT_WRITE,
                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   nm->startPtr = nm->freePtr;
-  nm->endPtr = (void *)((char *)nm->startPtr + HEAP_SIZE);
+  nm->endPtr = (void *)((char *)nm->startPtr + size);
 
   return nm;
 }

@@ -23,8 +23,6 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
-#define HEAP_SIZE (10 * 1024 * 1024)
-
 #include <stdlib.h>
 
 typedef struct memory_manager_malloc_t {
@@ -35,12 +33,14 @@ typedef struct nm_t {
   void *freePtr;
   void *startPtr;
   void *endPtr;
+  size_t size;
 } nm_t;
 
+void *nm_grow(nm_t *nm, size_t size);
 void *nm_malloc(nm_t *nm, size_t size);
 void *nm_realloc(nm_t *nm, void *ptr, size_t size);
 void *nm_calloc(nm_t *nm, size_t num, size_t size);
 void nm_free(nm_t *nm);
-nm_t *nm_create();
+nm_t *nm_create(size_t size);
 
 #endif // MEMORY_MANAGER_H

@@ -21,8 +21,8 @@ typedef struct mlp_params {
   nm_t *nm;
 } mlp_params;
 
-MLP *mlp_create(mlp_params params);
 Value *mlp_call(MLP *mlp, Value **x, nm_t *epochNm);
+MLP *mlp_create(mlp_params params);
 void mlp_update_parameters(MLP *mlp, double learningRate);
 void mlp_zero_grad(MLP *mlp);
 void mlp_print(MLP *mlp);

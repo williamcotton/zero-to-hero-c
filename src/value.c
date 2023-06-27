@@ -134,6 +134,10 @@ Value *value_expv(Value *v, nm_t *nm) {
 
 Value *value_create(double data, char *label, nm_t *nm) {
   Value *result = nm_malloc(nm, sizeof(Value));
+  if (result == NULL) {
+    printf("Failed to allocate memory for Value\n");
+    exit(1);
+  }
   result->data = data;
   result->label = label;
   result->operation = NULL;
