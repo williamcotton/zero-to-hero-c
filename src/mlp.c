@@ -49,7 +49,8 @@ Value *mlp_call(MLP *mlp, Value **x) {
   }
   Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
-    Value **outs = nm_malloc(mlp->nm, sizeof(Value *) * mlp->layers[i]->nout);
+    Value **outs =
+        nm_malloc(mlp->epochNm, sizeof(Value *) * mlp->layers[i]->nout);
     x = layer_call(mlp->layers[i], x, outs);
     mlp->layerOuts[i] = x;
     if (i == mlp->nlayers - 1) {
@@ -98,7 +99,7 @@ void mlp_zero_grad(MLP *mlp) {
 }
 
 void mlp_add_loss_function(MLP *mlp, Value *loss) {
-  ValueList *node = nm_malloc(mlp->nm, sizeof(ValueList));
+  ValueList *node = nm_malloc(mlp->epochNm, sizeof(ValueList));
   node->value = loss;
   node->next = NULL;
   if (mlp->losses == NULL) {

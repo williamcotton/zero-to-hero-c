@@ -14,6 +14,7 @@ typedef struct MLP {
   Value **params;
   int paramsCount;
   nm_t *nm;
+  nm_t *epochNm;
 } MLP;
 
 typedef struct mlp_params {

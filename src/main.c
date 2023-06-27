@@ -139,10 +139,11 @@ void mlp1() {
   });
 
   mlp_print(mlp);
-
+  mlp->epochNm = nm_create();
   Value *ypred = mlp_call(mlp, x);
   value_print(ypred, 0);
   free_value_vector(x, 3);
+  nm_free(mlp->epochNm);
   mlp_free(mlp);
   nm_free(nm);
 }
@@ -176,6 +177,8 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // forward pass
+    mlp->epochNm = nm_create();
+
     Value *mseLoss = mlp_create_mse_loss(mlp);
     for (int i = 0; i < outputCount; i++) {
       Value *ypred = mlp_call(mlp, xs[i]);
@@ -195,6 +198,8 @@ void trainingLoop() {
     printf("%d %.15lf\n", epoch, mseLoss->data);
 
     mlp_free_loss_functions(mlp);
+
+    nm_free(mlp->epochNm);
   }
   // after loop
   mlp_free(mlp);
