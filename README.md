@@ -31,44 +31,48 @@ This will run several examples of neural network components, including plotting 
 
 ## Example
 
-### Setting up the input data
+### Setting up the training data
 
-This code block sets up the necessary data for machine learning. It first creates an instance of the nm_t object which provides an interface to use memory in a block-wise way. This instance is allocated a block of memory sized `ONE_K * 16` units.
+First we set up the necessary data for training our neural network. We allocate a block of memory sized `ONE_K * 2` for storing our training data. This is done using the `nm_create` function, which takes the size of the memory block in bytes as input.
 
-After that, it creates and initializes the input vectors (`xs`) and the corresponding outputs (`ys`). The input vectors are two-dimensional arrays, while the output is a single-dimensional array. The `nm_malloc` function is used to allocate memory from the previously created nm_t instance. Then, `value_create_vector` is used to initialize each vector with the provided data.
+After that, it creates and initializes the input vectors (`xs`) and the corresponding outputs (`ys`). The input vectors are two-dimensional arrays, while the output is a single-dimensional array. The `nm_malloc` function is used to allocate memory from the previously created `trainingNm` instance. Then, `value_create_vector` is used to initialize each vector with the provided data.
 
 ```c
-nm_t *nm = nm_create(ONE_K * 16);
+nm_t *trainingNm = nm_create(ONE_K * 2);
 
 int outputCount = 4;
+int trainingCount = 4;
 
-Vector **xs = nm_malloc(nm, sizeof(Vector *) * outputCount);
+Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * trainingCount);
 double xs_data[][3] = {
     {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
-for (int i = 0; i < outputCount; i++) {
-  xs[i] = value_create_vector(xs_data[i], 3, nm);
+for (int i = 0; i < trainingCount; i++) {
+  xs[i] = value_create_vector(xs_data[i], 3, trainingNm);
 }
 
-Vector *labels =
-    value_create_vector((double[]){1.0, -1.0, -1.0, 1.0}, outputCount, nm);
+Vector *labels = value_create_vector((double[]){1.0, -1.0, -1.0, 1.0},
+                                      outputCount, trainingNm);
+
 ```
 
 ### Creating the model
 
-This code block creates an instance of a Multilayer Perceptron (MLP), a type of artificial neural network. The model has 3 input neurons, 2 hidden layers each with 4 neurons, and 1 output neuron. This is accomplished by using `mlp_create`, which takes an mlp_params object as input. The mlp_params object has properties `nin`, `nouts`, `nlayers`, and `nm`, which define the number of input neurons, the number of output neurons for each layer, the total number of layers, and the nm_t object for memory management, respectively.
+Then we create an instance of a Multilayer Perceptron (MLP), a type of artificial neural network. The model has 3 input neurons, 2 hidden layers each with 4 neurons, and 1 output neuron. This is accomplished by using `mlp_create`, which takes an mlp_params object as input. The mlp_params object has properties `nin`, `nouts`, `nlayers`, and `nm`, which define the number of input neurons, the number of output neurons for each layer, the total number of layers, and the `nm_t` object for memory management, respectively.
 
 ```c
+nm_t *mlpNm = nm_create(ONE_K * 16);
+
 MLP *mlp = mlp_create((mlp_params){
     .nin = 3,
     .nouts = (int[]){4, 4, 1},
     .nlayers = 3,
-    .nm = nm,
+    .nm = mlpNm,
 });
 ```
 
 ### Training the model
 
-This code block trains the MLP using the Mean Squared Error (MSE) loss function and the backpropagation algorithm for `epochsCount` number of iterations (epochs).
+Next we train the MLP using the Mean Squared Error (MSE) loss function and the backpropagation algorithm for `epochsCount` number of iterations (epochs).
 
 For each epoch, it first creates a new `nm_t *epochNm` instance to manage memory during that epoch. Then it creates an MSE loss function instance using `mse_loss_create`.
 
@@ -90,7 +94,7 @@ for (int epoch = 0; epoch < epochsCount; epoch++) {
   mlp_zero_grad(mlp);
 
   Value *mseLoss = mse_loss_create(epochNm);
-  for (int i = 0; i < outputCount; i++) {
+  for (int i = 0; i < trainingCount; i++) {
     // forward pass: compute predictions.
     Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
     // compute the loss between predicted and actual outputs.
@@ -168,5 +172,6 @@ ypred[3]: 0.959783694717388
 After the training process, the code block releases the memory that was allocated to the `nm` object. This is important for preventing memory leaks which could potentially exhaust the system's memory.
 
 ```c
+nm_free(trainingNm);
 nm_free(nm);
 ```

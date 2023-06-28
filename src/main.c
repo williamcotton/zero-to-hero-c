@@ -48,30 +48,44 @@ void plot(float (*f)(float), char *filename) {
 void nnGraph() {
   print_banner("nnGraph");
 
-  nm_t *nm = nm_create(ONE_MEG);
+  nm_t *nm = nm_create(ONE_K * 0.75);
+  nm_print(nm);
 
   // inputs x1,x2
   Value *x1 = value_create(2.0, "x1", nm);
+  nm_print(nm);
   Value *x2 = value_create(0.0, "x2", nm);
+  nm_print(nm);
   // weights w1,w2
   Value *w1 = value_create(-3.0, "w1", nm);
+  nm_print(nm);
   Value *w2 = value_create(1.0, "w2", nm);
+  nm_print(nm);
   // bias of the neuron
   Value *b = value_create(6.8813735870195432, "b", nm);
+  nm_print(nm);
   // x1*w1 + x2*w2 + b
   Value *x1w1 = value_multiply(x1, w1, nm);
+  nm_print(nm);
   x1w1->label = "x1*w1";
   Value *x2w2 = value_multiply(x2, w2, nm);
+  nm_print(nm);
   x2w2->label = "x2*w2";
   Value *x1w1x2w2 = value_add(x1w1, x2w2, nm);
+  nm_print(nm);
   x1w1x2w2->label = "x1*w1 + x2*w2";
   Value *n = value_add(x1w1x2w2, b, nm);
+  nm_print(nm);
   n->label = "n";
   Value *o = value_tanhv(n, nm);
+  nm_print(nm);
   o->label = "o";
 
   // Print the values and gradients of each node
-  value_backpropagate(o, nm);
+  nm_t *bpnm = nm_create(ONE_K * 9);
+  value_backpropagate(o, bpnm);
+  nm_free(bpnm);
+
   value_print(o, 0);
 
   nm_free(nm);
@@ -80,7 +94,7 @@ void nnGraph() {
 void nn1() {
   print_banner("nn1");
 
-  nm_t *nm = nm_create(ONE_MEG);
+  nm_t *nm = nm_create(ONE_K);
 
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
@@ -103,7 +117,7 @@ void nn1() {
 void layer1() {
   print_banner("layer1");
 
-  nm_t *nm = nm_create(ONE_MEG);
+  nm_t *nm = nm_create(ONE_K * 4);
 
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
@@ -151,24 +165,27 @@ void trainingLoop() {
   nm_t *trainingNm = nm_create(ONE_K * 2);
 
   int outputCount = 4;
+  int trainingCount = 4;
 
-  Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * outputCount);
+  int baseMemory = outputCount * trainingCount;
+
+  Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * trainingCount);
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
-  for (int i = 0; i < outputCount; i++) {
+  for (int i = 0; i < trainingCount; i++) {
     xs[i] = value_create_vector(xs_data[i], 3, trainingNm);
   }
 
   Vector *labels = value_create_vector((double[]){1.0, -1.0, -1.0, 1.0},
                                        outputCount, trainingNm);
 
-  nm_t *nm = nm_create(ONE_K * 16);
+  nm_t *mlpNm = nm_create(ONE_K * baseMemory); // 16k
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
       .nouts = (int[]){4, 4, 1},
       .nlayers = 3,
-      .nm = nm,
+      .nm = mlpNm,
   });
 
   int epochsCount = 30;
@@ -176,13 +193,13 @@ void trainingLoop() {
 
   for (int epoch = 0; epoch < epochsCount; epoch++) {
     // allocate memory for this epoch
-    nm_t *epochNm = nm_create(ONE_K * 48);
+    nm_t *epochNm = nm_create(ONE_K * baseMemory * 3); // 48k
 
     // zero gradients
     mlp_zero_grad(mlp);
 
     Value *mseLoss = mse_loss_create(epochNm);
-    for (int i = 0; i < outputCount; i++) {
+    for (int i = 0; i < trainingCount; i++) {
       // forward pass: compute predictions.
       Value *ypred = mlp_call(mlp, xs[i]->values, epochNm);
       // compute the loss between predicted and actual outputs.
@@ -201,18 +218,17 @@ void trainingLoop() {
     nm_free(epochNm);
   }
 
-  nm_t *predictNm = nm_create(ONE_K * 32);
+  nm_t *predictNm = nm_create(ONE_K * baseMemory * 2); // 32k
   for (int i = 0; i < outputCount; i++) {
     Value *ypred = mlp_call(mlp, xs[i]->values, predictNm);
     printf("ypred[%d]: %.15lf\n", i, ypred->data);
   }
   nm_free(predictNm);
   nm_free(trainingNm);
-  nm_free(nm);
+  nm_free(mlpNm);
 }
 
 int main() {
-
   plot(tanhf, "images/tanhf.png");
   plot(quadratic, "images/quadratic.png");
   nnGraph();

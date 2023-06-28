@@ -41,6 +41,8 @@ void *nm_malloc(nm_t *nm, size_t size);
 void *nm_realloc(nm_t *nm, void *ptr, size_t size);
 void *nm_calloc(nm_t *nm, size_t num, size_t size);
 void nm_free(nm_t *nm);
+size_t nm_size(nm_t *nm);
+void nm_print(nm_t *nm);
 nm_t *nm_create(size_t size);
 
 #endif // MEMORY_MANAGER_H
