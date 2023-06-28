@@ -57,9 +57,11 @@ void nm_free(nm_t *nm) {
   free(nm);
 }
 
-size_t nm_size(nm_t *nm) { return nm->freePtr - nm->startPtr; }
+size_t nm_size(nm_t *nm) { return (int *)nm->freePtr - (int *)nm->startPtr; }
 
-void nm_print(nm_t *nm) { printf("nm_size(nm): %zu\n", nm_size(nm)); }
+void nm_print(nm_t *nm) {
+  printf("\033[31mnm_size(nm): %zu\033[0m\n", nm_size(nm));
+}
 
 nm_t *nm_create(size_t size) {
   nm_t *nm = malloc(sizeof(nm_t));

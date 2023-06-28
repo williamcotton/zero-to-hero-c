@@ -28,6 +28,17 @@ void print_banner(const char *title) {
   printf("\033[0m\n\n");
 }
 
+void print_subheader(const char *subheader_text, char *text) {
+  printf("\n\033[34m");
+  printf("%s: ", subheader_text);
+  printf("\033[0m");
+  printf("%s\n\033[34m", text);
+  int len = strlen(text) + strlen(subheader_text) + 2;
+  for (int i = 0; i < len; i++)
+    printf("-");
+  printf("\033[0m\n");
+}
+
 void plot(float (*f)(float), char *filename) {
   print_banner("plot");
 
@@ -96,19 +107,24 @@ void nn1() {
 
   nm_t *nm = nm_create(ONE_K);
 
+  print_subheader("Creating inputs", "*x[2] = {x0, x1}");
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
   x[1] = value_create(3.0, "x1", nm);
+  nm_print(nm);
 
+  print_subheader("Creating neuron", "nin=2, layer_id=0, neuron_id=0, nm");
   Neuron *neuron = neuron_create((neuron_params){
       .nin = 2,
       .layer_id = 0,
       .neuron_id = 0,
       .nm = nm,
   });
+  nm_print(nm);
   neuron_print(neuron);
+  print_subheader("Calling neuron", "neuron, x, nm");
   Value *result = neuron_call(neuron, x, nm);
-  value_print(result, 0);
+  nm_print(nm);
   printf("Output: %f\n", result->data);
 
   nm_free(nm);
@@ -119,21 +135,26 @@ void layer1() {
 
   nm_t *nm = nm_create(ONE_K * 4);
 
+  print_subheader("Creating inputs", "*x[2] = {x0, x1}");
   Value *x[2];
   x[0] = value_create(2.0, "x0", nm);
   x[1] = value_create(3.0, "x1", nm);
+  nm_print(nm);
 
+  print_subheader("Creating layer", "nin=2, nout=3, layer_id=0, nm");
   Layer *layer = layer_create((layer_params){
       .nin = 2,
       .nout = 3,
       .layer_id = 0,
       .nm = nm,
   });
+  nm_print(nm);
   Value **outs = nm_malloc(nm, sizeof(Value *) * layer->nout);
+  print_subheader("Calling layer", "layer, x, outs, nm");
   Value **result = layer_call(layer, x, outs, nm);
+  nm_print(nm);
   for (int i = 0; i < 3; i++) {
     printf("Output: %f\n", result[i]->data);
-    value_print(result[i], 0);
   }
 
   nm_free(nm);
@@ -142,9 +163,10 @@ void layer1() {
 void mlp1() {
   print_banner("mlp1");
 
-  nm_t *nm = nm_create(ONE_K * 16);
+  nm_t *nm = nm_create(ONE_K * 11);
 
   Vector *x = value_create_vector((double[]){2.0, 3.0, -1.0}, 3, nm);
+  nm_print(nm);
 
   MLP *mlp = mlp_create((mlp_params){
       .nin = 3,
@@ -152,10 +174,12 @@ void mlp1() {
       .nlayers = 3,
       .nm = nm,
   });
+  nm_print(nm);
+
+  UNUSED Value *ypred = mlp_call(mlp, x->values, nm);
+  nm_print(nm);
 
   mlp_print(mlp);
-  Value *ypred = mlp_call(mlp, x->values, nm);
-  value_print(ypred, 0);
   nm_free(nm);
 }
 
@@ -167,7 +191,7 @@ void trainingLoop() {
   int outputCount = 4;
   int trainingCount = 4;
 
-  int baseMemory = outputCount * trainingCount;
+  int baseMemory = outputCount * trainingCount; // 16
 
   Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * trainingCount);
   double xs_data[][3] = {
@@ -175,6 +199,8 @@ void trainingLoop() {
   for (int i = 0; i < trainingCount; i++) {
     xs[i] = value_create_vector(xs_data[i], 3, trainingNm);
   }
+
+  nm_print(trainingNm);
 
   Vector *labels = value_create_vector((double[]){1.0, -1.0, -1.0, 1.0},
                                        outputCount, trainingNm);
@@ -187,6 +213,8 @@ void trainingLoop() {
       .nlayers = 3,
       .nm = mlpNm,
   });
+
+  nm_print(mlpNm);
 
   int epochsCount = 30;
   double learningRate = 0.05;
