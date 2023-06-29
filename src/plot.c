@@ -9,8 +9,8 @@ void generate_data(double *xs, double *ys, int num_points, float (*func)(float),
   int i;
   float x = start;
   for (i = 0; i < num_points; i++) {
-    xs[i] = x;
-    ys[i] = func(x);
+    xs[i] = (double)x;
+    ys[i] = (double)func(x);
     x += step;
     if (x > end) {
       break;
@@ -20,7 +20,7 @@ void generate_data(double *xs, double *ys, int num_points, float (*func)(float),
 
 void plot_gen_ys_f_of_xs(double *ys, float (*func)(float), double *xs,
                          int num_points, Range r) {
-  generate_data(xs, ys, num_points, func, r.start, r.end, r.step);
+  generate_data(xs, ys, num_points, func, r.start, r.end, (float)r.step);
 }
 
 void plot_data(double *xs, double *ys, int num_points, char *title,

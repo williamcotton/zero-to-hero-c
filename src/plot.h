@@ -4,7 +4,7 @@
 typedef struct Range {
   float start;
   float end;
-  float step;
+  double step;
 } Range;
 
 void generate_data(double *xs, double *ys, int num_points, float (*func)(float),

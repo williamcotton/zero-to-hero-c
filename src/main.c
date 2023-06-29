@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-float quadratic(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
+float quadratic(float x) { return 7 * powf(x, 2) - 4 * x + 5; }
 
 #define NUM_POINTS 40
 
@@ -16,7 +16,7 @@ float quadratic(float x) { return 7 * pow(x, 2) - 4 * x + 5; }
 #define ONE_K (1024)
 
 void print_banner(const char *title) {
-  int len = strlen(title);
+  int len = (int)strlen(title);
   int total_len = len + 6; // 3 characters padding on each side
   printf("\n\033[34m");
   for (int i = 0; i < total_len; i++)
@@ -33,7 +33,7 @@ void print_subheader(const char *subheader_text, char *text) {
   printf("%s: ", subheader_text);
   printf("\033[0m");
   printf("%s\n\033[34m", text);
-  int len = strlen(text) + strlen(subheader_text) + 2;
+  int len = (int)strlen(text) + (int)strlen(subheader_text) + 2;
   for (int i = 0; i < len; i++)
     printf("-");
   printf("\033[0m\n");
@@ -59,7 +59,7 @@ void plot(float (*f)(float), char *filename) {
 void nnGraph() {
   print_banner("nnGraph");
 
-  nm_t *nm = nm_create(ONE_K * 0.75);
+  nm_t *nm = nm_create((size_t)(ONE_K * 0.75));
   nm_print(nm);
 
   // inputs x1,x2
@@ -144,7 +144,7 @@ void layer1() {
       .nm = nm,
   });
   nm_print(nm);
-  Value **outs = nm_malloc(nm, sizeof(Value *) * layer->nout);
+  Value **outs = nm_malloc(nm, sizeof(Value *) * (size_t)layer->nout);
   print_subheader("Calling layer", "layer, x, outs, nm");
   Value **result = layer_call(layer, x, outs, nm);
   nm_print(nm);
@@ -186,9 +186,9 @@ void trainingLoop() {
   int outputCount = 4;
   int trainingCount = 4;
 
-  int baseMemory = outputCount * trainingCount; // 16
+  size_t baseMemory = (size_t)outputCount * (size_t)trainingCount; // 16
 
-  Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * trainingCount);
+  Vector **xs = nm_malloc(trainingNm, sizeof(Vector *) * (size_t)trainingCount);
   double xs_data[][3] = {
       {2.0, 3.0, -1.0}, {3.0, -1.0, 0.5}, {0.5, 1.0, 1.0}, {1.0, 1.0, -1.0}};
   for (int i = 0; i < trainingCount; i++) {

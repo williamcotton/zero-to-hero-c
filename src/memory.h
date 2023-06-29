@@ -23,6 +23,7 @@
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
 
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct memory_manager_malloc_t {

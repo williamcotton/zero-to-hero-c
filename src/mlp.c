@@ -13,7 +13,8 @@ static int mlp_nparams(MLP *mlp) {
 }
 
 static Value **mlp_parameters(MLP *mlp) {
-  Value **params = nm_calloc(mlp->nm, mlp->paramsCount, sizeof(Value *));
+  Value **params =
+      nm_calloc(mlp->nm, (size_t)mlp->paramsCount, sizeof(Value *));
   int idx = 0;
   for (int i = 0; i < mlp->nlayers; i++) {
     Value **layer_params = layer_parameters(mlp->layers[i]);
@@ -28,7 +29,7 @@ static Value **mlp_parameters(MLP *mlp) {
 MLP *mlp_create(mlp_params params) {
   MLP *mlp = nm_malloc(params.nm, sizeof(MLP));
   mlp->nm = params.nm;
-  mlp->layers = nm_malloc(mlp->nm, sizeof(Layer *) * params.nlayers);
+  mlp->layers = nm_malloc(mlp->nm, sizeof(Layer *) * (size_t)params.nlayers);
   for (int i = 0; i < params.nlayers; i++) {
     mlp->layers[i] = layer_create((layer_params){
         .nin = i == 0 ? params.nin : params.nouts[i - 1],
@@ -69,7 +70,8 @@ Value *mlp_call(MLP *mlp, Value **x, nm_t *epochNm) {
   }
   Value *out = NULL;
   for (int i = 0; i < mlp->nlayers; i++) {
-    Value **outs = nm_malloc(epochNm, sizeof(Value *) * mlp->layers[i]->nout);
+    Value **outs =
+        nm_malloc(epochNm, sizeof(Value *) * (size_t)mlp->layers[i]->nout);
     x = layer_call(mlp->layers[i], x, outs, epochNm);
     if (i == mlp->nlayers - 1) {
       out = x[0];

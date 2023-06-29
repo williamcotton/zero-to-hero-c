@@ -1,7 +1,7 @@
 CC = clang
 TIDY = clang-tidy
 CFLAGS = $(shell cat compile_flags.txt | tr '\n' ' ')
-DEV_CFLAGS += -Werror -fsanitize=address,undefined,implicit-conversion,float-divide-by-zero,local-bounds,nullability,integer,function,return,signed-integer-overflow,unsigned-integer-overflow -fno-omit-frame-pointer -g -O0
+DEV_CFLAGS += -Werror -fsanitize=address,undefined,implicit-conversion,float-divide-by-zero,local-bounds,nullability,integer,function,return,signed-integer-overflow,unsigned-integer-overflow -fno-omit-frame-pointer -g -O0 -fsanitize-trap
 TRACE_CFLAGS += -g3 -O0 
 LDFLAGS = -L./lib -lgnuplot_i -L./src
 SRCDIR = src

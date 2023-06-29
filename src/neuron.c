@@ -6,14 +6,14 @@
 Neuron *neuron_create(neuron_params params) {
   Neuron *neuron = nm_malloc(params.nm, sizeof(Neuron));
   neuron->nm = params.nm;
-  neuron->w = nm_malloc(neuron->nm, sizeof(Value *) * params.nin);
+  neuron->w = nm_malloc(neuron->nm, sizeof(Value *) * (size_t)params.nin);
   for (int i = 0; i < params.nin; i++) {
     neuron->w[i] = value_create(
-        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
+        (double)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
         neuron->nm);
   }
   neuron->b = value_create(
-      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
+      (double)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
       neuron->nm);
   neuron->nin = params.nin;
   neuron->out = NULL;
@@ -29,7 +29,8 @@ Value *neuron_call(Neuron *neuron, Value **x, nm_t *epochNm) {
 }
 
 Value **neuron_parameters(Neuron *neuron) {
-  Value **params = nm_calloc(neuron->nm, neuron->nin + 1, sizeof(Value *));
+  Value **params =
+      nm_calloc(neuron->nm, (size_t)neuron->nin + 1, sizeof(Value *));
   for (int i = 0; i < neuron->nin; i++) {
     params[i] = neuron->w[i];
   }

@@ -33,7 +33,8 @@ static void value_add_backward(Value *v) {
 Value *value_add(Value *v1, Value *v2, nm_t *nm) {
   Value *result = value_create(v1->data + v2->data, nm);
   result->num_children = 2;
-  result->children = nm_malloc(nm, sizeof(Value *) * result->num_children);
+  result->children =
+      nm_malloc(nm, sizeof(Value *) * (size_t)result->num_children);
   result->children[0] = v1;
   result->children[1] = v2;
   result->backward = value_add_backward;
@@ -48,7 +49,8 @@ static void value_multiply_backward(Value *v) {
 Value *value_multiply(Value *v1, Value *v2, nm_t *nm) {
   Value *result = value_create(v1->data * v2->data, nm);
   result->num_children = 2;
-  result->children = nm_malloc(nm, sizeof(Value *) * result->num_children);
+  result->children =
+      nm_malloc(nm, sizeof(Value *) * (size_t)result->num_children);
   result->children[0] = v1;
   result->children[1] = v2;
   result->backward = value_multiply_backward;
@@ -73,7 +75,8 @@ static void value_sub_backward(Value *v) {
 Value *value_subtract(Value *v1, Value *v2, nm_t *nm) {
   Value *result = value_create(v1->data - v2->data, nm);
   result->num_children = 2;
-  result->children = nm_malloc(nm, sizeof(Value *) * result->num_children);
+  result->children =
+      nm_malloc(nm, sizeof(Value *) * (size_t)result->num_children);
   result->children[0] = v1;
   result->children[1] = v2;
   result->backward = value_sub_backward;
@@ -127,7 +130,7 @@ Value *value_expv(Value *v, nm_t *nm) {
 
 Vector *value_create_vector(double *data, int size, nm_t *nm) {
   Vector *result = nm_malloc(nm, sizeof(Vector));
-  Value **values = nm_malloc(nm, sizeof(Value *) * size);
+  Value **values = nm_malloc(nm, sizeof(Value *) * (size_t)size);
   for (int i = 0; i < size; i++) {
     char label[10];
     snprintf(label, 10, "%f", data[i]);

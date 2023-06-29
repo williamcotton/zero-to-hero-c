@@ -6,3 +6,8 @@
 -Wformat
 -Wshadow
 -Wmisleading-indentation
+-Wdouble-promotion
+-Wno-unused-parameter
+-Wno-unused-function
+-Wno-sign-conversion
+-Wconversion

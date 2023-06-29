@@ -3,7 +3,7 @@
 
 TopoList *topolist_create(int capacity, nm_t *nm) {
   TopoList *list = nm_malloc(nm, sizeof(TopoList));
-  list->values = nm_malloc(nm, sizeof(Value *) * capacity);
+  list->values = nm_malloc(nm, sizeof(Value *) * (size_t)capacity);
   list->size = 0;
   list->capacity = capacity;
   list->nm = nm;
@@ -13,8 +13,8 @@ TopoList *topolist_create(int capacity, nm_t *nm) {
 void topolist_add(TopoList *list, Value *value) {
   if (list->size == list->capacity) {
     list->capacity *= 2;
-    list->values =
-        nm_realloc(list->nm, list->values, sizeof(Value *) * list->capacity);
+    list->values = nm_realloc(list->nm, list->values,
+                              sizeof(Value *) * (size_t)list->capacity);
   }
   list->values[list->size] = value;
   list->size++;

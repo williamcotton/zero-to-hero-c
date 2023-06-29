@@ -26,7 +26,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-unsigned int roundTo8(unsigned int value) { return (value + 7) & ~7; }
+size_t roundTo8(size_t value) { return (size_t)((int)(value + 7) & ~7); }
 
 void *nm_malloc(nm_t *nm, size_t size) {
   char *ptr = (char *)nm->freePtr;
@@ -57,7 +57,9 @@ void nm_free(nm_t *nm) {
   free(nm);
 }
 
-size_t nm_size(nm_t *nm) { return (int *)nm->freePtr - (int *)nm->startPtr; }
+size_t nm_size(nm_t *nm) {
+  return (size_t)((int *)nm->freePtr - (int *)nm->startPtr);
+}
 
 void nm_print(nm_t *nm) {
   printf("\033[31mnm_size(nm): %zu\033[0m\n", nm_size(nm));
