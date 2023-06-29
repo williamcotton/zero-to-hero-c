@@ -16,8 +16,7 @@ typedef struct ValueList {
 
 struct Value {
   double data;
-  char *label;
-  char *operation;
+  char *uuid;
   Value **children;
   int num_children;
   double grad;
@@ -30,7 +29,7 @@ typedef struct Vector {
   int size;
 } Vector;
 
-Value *value_create(double data, char *label, nm_t *nm);
+Value *value_create(double data, nm_t *nm);
 Value *value_add(Value *v1, Value *v2, nm_t *nm);
 Value *value_subtract(Value *v1, Value *v2, nm_t *nm);
 Value *value_multiply(Value *v1, Value *v2, nm_t *nm);

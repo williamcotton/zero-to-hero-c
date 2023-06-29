@@ -9,11 +9,11 @@ Neuron *neuron_create(neuron_params params) {
   neuron->w = nm_malloc(neuron->nm, sizeof(Value *) * params.nin);
   for (int i = 0; i < params.nin; i++) {
     neuron->w[i] = value_create(
-        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL,
+        (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
         neuron->nm);
   }
   neuron->b = value_create(
-      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0, NULL,
+      (float)arc4random_uniform(UINT32_MAX) / UINT32_MAX * 2.0 - 1.0,
       neuron->nm);
   neuron->nin = params.nin;
   neuron->out = NULL;

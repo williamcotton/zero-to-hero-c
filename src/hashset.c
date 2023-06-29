@@ -6,11 +6,11 @@
 
 int hash_value(Value *value) {
   int hash = 0;
-  if (value->label == NULL) {
+  if (value->uuid == NULL) {
     return hash;
   }
-  for (size_t i = 0; i < strlen(value->label); i++) {
-    hash = (hash * 31 + value->label[i]) % HASHSET_SIZE;
+  for (size_t i = 0; i < strlen(value->uuid); i++) {
+    hash = (hash * 31 + value->uuid[i]) % HASHSET_SIZE;
   }
   return hash;
 }

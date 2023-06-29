@@ -9,6 +9,6 @@ Value *mse_loss_call(Value *mseLoss, Value *ypred, Value *ys, nm_t *epochNm) {
 }
 
 Value *mse_loss_create(nm_t *epochNm) {
-  Value *mseLoss = value_create(0.0, "mse_loss", epochNm);
+  Value *mseLoss = value_create(0.0, epochNm);
   return mseLoss;
 }

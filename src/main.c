@@ -63,34 +63,29 @@ void nnGraph() {
   nm_print(nm);
 
   // inputs x1,x2
-  Value *x1 = value_create(2.0, "x1", nm);
+  Value *x1 = value_create(2.0, nm);
   nm_print(nm);
-  Value *x2 = value_create(0.0, "x2", nm);
+  Value *x2 = value_create(0.0, nm);
   nm_print(nm);
   // weights w1,w2
-  Value *w1 = value_create(-3.0, "w1", nm);
+  Value *w1 = value_create(-3.0, nm);
   nm_print(nm);
-  Value *w2 = value_create(1.0, "w2", nm);
+  Value *w2 = value_create(1.0, nm);
   nm_print(nm);
   // bias of the neuron
-  Value *b = value_create(6.8813735870195432, "b", nm);
+  Value *b = value_create(6.8813735870195432, nm);
   nm_print(nm);
   // x1*w1 + x2*w2 + b
   Value *x1w1 = value_multiply(x1, w1, nm);
   nm_print(nm);
-  x1w1->label = "x1*w1";
   Value *x2w2 = value_multiply(x2, w2, nm);
   nm_print(nm);
-  x2w2->label = "x2*w2";
   Value *x1w1x2w2 = value_add(x1w1, x2w2, nm);
   nm_print(nm);
-  x1w1x2w2->label = "x1*w1 + x2*w2";
   Value *n = value_add(x1w1x2w2, b, nm);
   nm_print(nm);
-  n->label = "n";
   Value *o = value_tanhv(n, nm);
   nm_print(nm);
-  o->label = "o";
 
   // Print the values and gradients of each node
   nm_t *bpnm = nm_create(ONE_K * 9);
@@ -109,8 +104,8 @@ void nn1() {
 
   print_subheader("Creating inputs", "*x[2] = {x0, x1}");
   Value *x[2];
-  x[0] = value_create(2.0, "x0", nm);
-  x[1] = value_create(3.0, "x1", nm);
+  x[0] = value_create(2.0, nm);
+  x[1] = value_create(3.0, nm);
   nm_print(nm);
 
   print_subheader("Creating neuron", "nin=2, layer_id=0, neuron_id=0, nm");
@@ -137,8 +132,8 @@ void layer1() {
 
   print_subheader("Creating inputs", "*x[2] = {x0, x1}");
   Value *x[2];
-  x[0] = value_create(2.0, "x0", nm);
-  x[1] = value_create(3.0, "x1", nm);
+  x[0] = value_create(2.0, nm);
+  x[1] = value_create(3.0, nm);
   nm_print(nm);
 
   print_subheader("Creating layer", "nin=2, nout=3, layer_id=0, nm");
