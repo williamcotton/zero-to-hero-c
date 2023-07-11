@@ -578,7 +578,7 @@ int gnuplot_write_multi_csv(char const *fileName, double const **xListPtr,
 char const *gnuplot_tmpfile(gnuplot_ctrl *handle) {
   static char const *tmp_filename_template = "gnuplot_tmpdatafile_XXXXXX";
   char *tmp_filename = NULL;
-  int tmp_filelen = strlen(tmp_filename_template);
+  int tmp_filelen = (int)strlen(tmp_filename_template);
 
 #ifndef WIN32
   int unx_fd;
@@ -594,7 +594,7 @@ char const *gnuplot_tmpfile(gnuplot_ctrl *handle) {
     return NULL;
   }
 
-  tmp_filename = (char *)malloc(tmp_filelen + 1);
+  tmp_filename = (char *)malloc((size_t)tmp_filelen + 1);
   if (tmp_filename == NULL) {
     return NULL;
   }
